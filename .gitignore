@@ -1,0 +1,16 @@
+stderr.log
+stdout.log
+log/
+etc/keys/
+jobs/test.py
+tmp/
+*.pyc
+NOTES
+.DS_Store
+debug.log
+*/debug.log
+util/token_file
+nova-client.log
+build/
+crud_config.egg-info/
+dist/
