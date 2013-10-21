@@ -63,16 +63,15 @@ class CrudConfig(object):
             self.session.rollback()
             # The key already exists, so instead get it
             k = self.get_key(container, key, tag)
-
-
         v = self.add_value(k.id, value)
         return (k, v)
 
-    def add_value(self, key_id, value):
+    def add_value(self, key_id, raw_value):
         # Need to try and get the value first, to avoid dupes
         # can't index this in the DB since we allow text. Adding is a somewhat
         # slow operation because of this duplicate check
         try:
+            value = self.crypter.Encrypt(raw_value)
             v = self.get_value(key_id, value)
         except ce.NoResult as e:
             self.session.rollback()
@@ -97,8 +96,12 @@ class CrudConfig(object):
     def get_key(self, tree, name, tag=None):
         if tag is None:
             tag = self.default_tag
-        c = self.get_container(tree)
-        k = self.session.query(Key).filter(Key.tag == unicode(tag), Key.container_id == c.id, Key.name == unicode(name)).one()
+        try:
+            c = self.get_container(tree)
+            k = self.session.query(Key).filter(Key.tag == unicode(tag), Key.container_id == c.id, Key.name == unicode(name)).one()
+        except sqlormerrors.NoResultFound as e:
+            self.session.rollback()
+            raise ce.NoResult("There's no match!")
         return k
 
     def add_key(self, container, name, tag=None):
@@ -149,14 +152,22 @@ class CrudConfig(object):
     def list_containers(self, tree):
         pass
 
-    def get_container(self, tree): 
-        containers = tree.lstrip("/").rstrip("/").split("/")
+    def get_container(self, tree):
+        try:
+            containers = [int(tree)]
+        except ValueError:
+            containers = tree.lstrip("/").rstrip("/").split("/")
+
         top_record = self.session.query(Container).filter(Container.parent_id == 0).one()
         if len(containers) == 1 and containers[0] == '':
             return top_record
+
         for item in containers:
             try:
-                top_record = self.session.query(Container).filter(Container.name == unicode(item), Container.parent_id == top_record.id).one()
+                if type(item) is int: 
+                    top_record = self.session.query(Container).filter(Container.id == item).one()
+                else:
+                    top_record = self.session.query(Container).filter(Container.name == unicode(item), Container.parent_id == top_record.id).one()
             except sqlormerrors.MultipleResultsFound as e:
                 self.session.rollback()
                 raise ce.NotUnique("To many rows found matching! This is a serious DB integrity issue")
