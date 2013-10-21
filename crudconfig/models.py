@@ -11,8 +11,9 @@ class Container(Base):
     id = Column(Integer, Sequence('container_id_seq'), primary_key=True)
     name = Column(Unicode(64), nullable=False, index=True)
     description = Column(UnicodeText, nullable=True)
-    parent_id = Column(Integer, nullable=False, index=True)
+    parent_id = Column(Integer, ForeignKey('containers.id'), nullable=False, index=True)
     keys = relationship("Key", backref='container')
+    children = relationship("Container", backref=backref('parent', remote_side=[id]))
 
     __table_args__ = (UniqueConstraint('name', 'parent_id', name="containers_idx_parent_name_uc"), 
                      )

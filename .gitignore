@@ -14,3 +14,4 @@ nova-client.log
 build/
 crud_config.egg-info/
 dist/
+web/config.py
