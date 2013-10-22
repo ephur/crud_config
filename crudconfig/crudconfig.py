@@ -55,9 +55,11 @@ class CrudConfig(object):
         pass
 
     def add_keyval(self, container, key, value, tag=None):
+        if tag is None:
+            tag = self.default_tag
         try:
             # Try to add the key
-            k = self.add_key(container, key)
+            k = self.add_key(container, key, tag=tag)
         except ce.NotUnique as e:
             # Need a new session because the last one is dirty now
             self.session.rollback()
@@ -97,7 +99,7 @@ class CrudConfig(object):
         if tag is None:
             tag = self.default_tag
         try:
-            c = self.get_container(tree)
+            c = self.get_container(tree, tag=tag)
             k = self.session.query(Key).filter(Key.tag == unicode(tag), Key.container_id == c.id, Key.name == unicode(name)).one()
         except sqlormerrors.NoResultFound as e:
             self.session.rollback()
@@ -152,13 +154,16 @@ class CrudConfig(object):
     def list_containers(self, tree):
         pass
 
-    def get_container(self, tree):
+    def get_container(self, tree, tag=None):
+        if tag is None:
+            tag = self.default_tag
         try:
             containers = [int(tree)]
         except ValueError:
             containers = tree.lstrip("/").rstrip("/").split("/")
 
         top_record = self.session.query(Container).filter(Container.parent_id == 0).one()
+        #top_record = self.session.query(Container).join(Container.tag).options(contains_eager(Container.tag)).filter(Container.parent_id==0,Key.tag==tag).one()
         if len(containers) == 1 and containers[0] == '':
             return top_record
 

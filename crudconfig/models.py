@@ -1,6 +1,7 @@
 from sqlalchemy import *
 from sqlalchemy.orm import *
 from crudconfig import Base
+from sqlalchemy.orm.interfaces import MapperOption
 
 import datetime
 
@@ -14,14 +15,14 @@ class Container(Base):
     parent_id = Column(Integer, ForeignKey('containers.id'), nullable=False, index=True)
     keys = relationship("Key", backref='container')
     children = relationship("Container", backref=backref('parent', remote_side=[id]))
-
-    __table_args__ = (UniqueConstraint('name', 'parent_id', name="containers_idx_parent_name_uc"), 
+    tag = relationship(Key",lazy=True)
+    __table_args__ = (UniqueConstraint('name', 'parent_id', name="containers_idx_parent_name_uc"),   
                      )
-
-    def __init__(self, name, description, parent_id):
+    def __init__(self, name, description, parent_id, tag):
         self.name = unicode(name)
         self.description = unicode(description)
         self.parent_id = parent_id
+        self.tag = unicode(tag)
 
     def __repr__(self):
         return "<Container(%s', '%s', %d)>" % (unicode(self.name), unicode(self.description), self.parent_id)
@@ -67,3 +68,25 @@ class Value(Base):
 
     def __repr__(self):
         return "<Value(%d, '%s')>" % ( int(self.key_id), unicode(self.value) )
+
+# @TODO (ephur): Figure this out Working on implementing this filter, so the tag can be 
+# filtered on properly when fetching child relationships in a container object
+class Tagged(MapperOption):
+    propagate_to_loaders = True
+
+    def __init__(self, tag):
+        self.tag = unicode(tag)
+
+    def process_query_conditionally(self, query):
+        query._params = query._params.union(dict(tag=self.tag))
+
+    def process_query(self, query):
+        self.process_query_conditionally(query)
+        parent_cls = query._mapper_zero().class_
+        filter_crit = parent_cls.tag.equals(
+            bindparam("tag")
+        )
+        if query._criterion is None:
+            query._criterion = filter_crit
+        else:
+            query._criterion = query._criterion & filter_crit

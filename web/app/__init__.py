@@ -1,10 +1,12 @@
 import flask
+from flask import Flask, render_template, request, g
 import simplejson as json
 from keyczar import keyczar
-from flask import Flask, render_template, request, g
 from werkzeug.contrib.cache import MemcachedCache
 from time import sleep
 from random import random
+
+
 import crudconfig
 
 app = Flask(__name__)
@@ -14,11 +16,13 @@ cache = MemcachedCache(cache_servers)
 
 
 
+# The catch all for GET requests. This will cover the majority of 
+# gets that come through this API. 
 @app.route("/", methods=['GET'], defaults={'path': ''})
 @app.route('/<path:path>', methods=['GET'])
 def api_get(path):
     # This will handle all gets that are not otherwise defined.
-    cache_key = path + "?" + "&".join(["%s=%s" % (k, v) for k, v in request.args.iteritems()])
+    cache_key = path + "?" + "&".join(["%s=%s" % (k.upper(), v.upper()) for k, v in request.args.iteritems()])
     loadkey = "loading-" + cache_key
     cache_result = cache.get(cache_key)
     loops = 0
@@ -44,15 +48,15 @@ def api_get(path):
             request_key = None
             for (k, v) in request.args.iteritems():
                 if k.upper() == "TAG":
-                    request_tag = v
+                    request_tag = v.upper()
                 elif k.upper() == "KEY":
-                    request_key = v
+                    request_key = v.upper()
                 else:
                     # only handle query params we know about
                     # helps a little against attack, and ensuring people aren't 
                     # submitting stuff they think does something when it does not
                     # Oh yeah... In the words of Jesse Pinkman: "No Cache Busting Bitches"
-                    flask.abort(400)
+                    flask.abort(400,key=k, value=v, path=cache_key)
 
             app.logger.debug("I'm doing the loading after a sleep of %f seconds" % (sleeptime))
             cconfig = crudconfig.CrudConfig(keypath=app.config['KEYPATH'], 
@@ -68,28 +72,31 @@ def api_get(path):
 
             if request_key is not None:
                 # A single Key is requested
-                return_key = { request_key: {"values": list() } }
                 try:
                     key = cconfig.get_key(path, request_key, tag=request_tag)
                 except crudconfig.exceptions.NoResult:
                     flask.abort(404)
 
-                return_key[request_key]['tag'] = key.tag
+                return_key = { key.name: {"values": list() } }
+                return_key[key.name]['tag'] = key.tag
                 # @TODO: Fix date added/date updated
                 # return_key['added'] = key.added
                 # return_key['updated'] = key.updated
 
                 for v in key.values:
                     try:
-                        return_key[request_key]['values'].append({'id': v.id, 'value': crypter.Decrypt(v.value)})
+                        return_key[key.name]['values'].append({'id': v.id, 'value': crypter.Decrypt(v.value)})
                     except (keyczar.errors.ShortCiphertextError, 
                             keyczar.errors.Base64DecodingError) as e:
-                        return_key[request_key]['values'].append({'id': v.id, 'value': v.value})
+                        return_key[key.name]['values'].append({'id': v.id, 'value': v.value})
 
                 cache.set(cache_key, json.dumps(return_key), timeout=app.config['CACHE_DEFAULT_AGE_SECONDS'])
 
             else:
-                container = cconfig.get_container(path)
+                try:
+                    container = cconfig.get_container(path)
+                except crudconfig.exceptions.NoResult:
+                    flask.abort(404)
                 all_containers = [container.id]
                 all_values = dict()
                 while container.parent is not None:
@@ -99,6 +106,11 @@ def api_get(path):
                 for container in reversed(all_containers):
                     c = cconfig.get_container(container)
                     for key in c.keys:
+                        if key.tag != request_tag and key.tag != app.config['DEFAULT_TAG']: continue
+                        try:
+                            if all_values[key.name]['tag'] != app.config['DEFAULT_TAG']: continue
+                        except KeyError:
+                            pass
                         all_values[key.name] = {'values': list(),
                                            'tag': key.tag, 
                                            'id': key.id }
@@ -117,6 +129,8 @@ def api_get(path):
     return cache_result
 
 
+# When running in debug mode, allow a caller to GET /clear
+# in order to empty the cache.
 @app.route("/clear", methods=['GET'])
 def clear_cache():
     if app.config['DEBUG'] is True:
@@ -126,7 +140,18 @@ def clear_cache():
     else:
         flask.abort(404)
 
+# Error Handler for 400's, REQUEST errors.
+@app.errorhandler(400)
+def four_oh_oh(**kwargs):
+    return json.dumps(kwargs), 400
+
+# 404's Resources Not Found
 @app.errorhandler(404)
 def four_oh_four(e):
     error = {"code": 404, "message": "resource not found"}
     return json.dumps(error), 404
+
+def toBool(string):
+    if str(string).upper() in ['YES', 'Y', '1', 'TRUE', 'T', 'YE']: return True
+    if str(string).upper() in ['N', 'NO', 'FALSE', 'F', '0', "0.0", "[]", "{}", "None" ]: return False
+    raise ValueError("Unknown Boolean Value")
