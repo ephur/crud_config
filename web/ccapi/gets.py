@@ -1,28 +1,21 @@
 import flask
-from flask import Flask, render_template, request, g
 import simplejson as json
+import crudconfig
+
+from ccapi import app
+from ccapi.error_handlers import error
 from keyczar import keyczar
 from werkzeug.contrib.cache import MemcachedCache
 from time import sleep
 from random import random
 
 
-import crudconfig
-
-app = Flask(__name__)
-app.config.from_object('config')
 cache_servers=app.config['MEMCACHE_SERVERS'].split(",")
 cache = MemcachedCache(cache_servers)
 
-
-
-# The catch all for GET requests. This will cover the majority of 
-# gets that come through this API. 
-@app.route("/", methods=['GET'], defaults={'path': ''})
-@app.route('/<path:path>', methods=['GET'])
-def api_get(path):
+def get_main(path):
     # This will handle all gets that are not otherwise defined.
-    cache_key = path + "?" + "&".join(["%s=%s" % (k.upper(), v.upper()) for k, v in request.args.iteritems()])
+    cache_key = path + "?" + "&".join(["%s=%s" % (k.upper(), v.upper()) for k, v in flask.request.args.iteritems()])
     loadkey = "loading-" + cache_key
     cache_result = cache.get(cache_key)
     loops = 0
@@ -33,7 +26,7 @@ def api_get(path):
         # loops is excessive
         loops += 1
         if loops > 50:
-            flask.abort(500)
+            return(error(500, message="item never became available in cache", debug="%d: %s" %(loops, cache_key)))
         app.logger.debug("%s is not cached, checked %d times" % (cache_key, loops))
         sleeptime = random() / 10
         sleep(sleeptime)
@@ -46,7 +39,7 @@ def api_get(path):
             # Set values for the request
             request_tag = app.config['DEFAULT_TAG']
             request_key = None
-            for (k, v) in request.args.iteritems():
+            for (k, v) in flask.request.args.iteritems():
                 if k.upper() == "TAG":
                     request_tag = v.upper()
                 elif k.upper() == "KEY":
@@ -56,7 +49,7 @@ def api_get(path):
                     # helps a little against attack, and ensuring people aren't 
                     # submitting stuff they think does something when it does not
                     # Oh yeah... In the words of Jesse Pinkman: "No Cache Busting Bitches"
-                    flask.abort(400,key=k, value=v, path=cache_key)
+                    return(error(400,"invalid query string parameters", key=k, value=v, path=cache_key))
 
             app.logger.debug("I'm doing the loading after a sleep of %f seconds" % (sleeptime))
             cconfig = crudconfig.CrudConfig(keypath=app.config['KEYPATH'], 
@@ -128,30 +121,10 @@ def api_get(path):
         cache_result = cache.get(cache_key)
     return cache_result
 
-
-# When running in debug mode, allow a caller to GET /clear
-# in order to empty the cache.
-@app.route("/clear", methods=['GET'])
-def clear_cache():
+def get_clear():
     if app.config['DEBUG'] is True:
         cache.clear()
         app.logger.debug("cleared the cache")
         return "cleared\n"
     else:
         flask.abort(404)
-
-# Error Handler for 400's, REQUEST errors.
-@app.errorhandler(400)
-def four_oh_oh(**kwargs):
-    return json.dumps(kwargs), 400
-
-# 404's Resources Not Found
-@app.errorhandler(404)
-def four_oh_four(e):
-    error = {"code": 404, "message": "resource not found"}
-    return json.dumps(error), 404
-
-def toBool(string):
-    if str(string).upper() in ['YES', 'Y', '1', 'TRUE', 'T', 'YE']: return True
-    if str(string).upper() in ['N', 'NO', 'FALSE', 'F', '0', "0.0", "[]", "{}", "None" ]: return False
-    raise ValueError("Unknown Boolean Value")

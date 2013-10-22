@@ -15,7 +15,6 @@ class Container(Base):
     parent_id = Column(Integer, ForeignKey('containers.id'), nullable=False, index=True)
     keys = relationship("Key", backref='container')
     children = relationship("Container", backref=backref('parent', remote_side=[id]))
-    tag = relationship(Key",lazy=True)
     __table_args__ = (UniqueConstraint('name', 'parent_id', name="containers_idx_parent_name_uc"),   
                      )
     def __init__(self, name, description, parent_id, tag):
