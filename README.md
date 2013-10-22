@@ -62,47 +62,40 @@ In post requests, you can include copyfrom in the JSON dictionary, and all keys/
 
 
 ## RETRIEVE: retrieve configuration information
-A key is optional in get operations, but does change the behavior of the return. If no key is provided, then ALL keys defined at the level requested are returned, optionally keys matching the tag
-are returned. If a particular key is requested 
+A key is optional in get operations, but does change the behavior of the return. If no key is provided, then ALL keys defined at the level requested are returned, optionally keys matching the tagare returned. If a particular key is requested.
+
+*NOTE:* This structure is dynamic, and can look however the 'containers' are organized into a tree. The tree below merely reflects our organization. The organization can be changed. Each item (region, cell, machine) is merely a container, and the get request path reflects the organization of the tree. 
 
 ### get requests
-* get /config/[key?tag=x] (get [a] config value[s] from the global area )
-* get /config/?regions (get all the regions in the global area)
-* get /config/region[key?tag=x] (get [a] config value[s] from a region)
-* get /config/regions/?cells (get all the cells in a region)
-* get /config/region/cell/[key?tag=x] (get [a] config value[s] from a cell)
-* get /config/region/cell/?machines (get all the machines in a region)  
-* get /config/region/cell/machine[key?tag=x] (get [a] config value[s] from a machine)
+* get /[?key=y&tag=x] (get [a] config value[s] from the global area )
+* get /region[?key=y&tag=x] (get [a] config value[s] from a region)
+* get /region/cell[?key=y&tag=x] (get [a] config value[s] from a cell)
+* get /region/cell/machine[?key=y&tag=x] (get [a] config value[s] from a machine)
+* get /region/cell[?list_containers] (list the child containers [inside of /region/cell in this example])
 
 
 ## UPDATE: update existing configuration values
 Update configuration values. You can not update a value that does not exist. A 404 will be returned if updating a value that does not exist. It is optional to provide a tag, if a tag is not provided it will be assumed to be a global value. If a tag is provided, that tag must exist to update.
 
 ##### put requests
-* put /config/key?value=x[&tag=y]  (update a key)
-* put /config/region/key?value=x[&tag=y] (update a key)
-* put /config/region/cell/key?value=x[&tag=y] (update a key)
-* put /config/region/cell/machine/key?value=x&[tag=y] (update a key)
+* put /key?value=x[&tag=y]  (update a key)
+* put /region/key?value=x[&tag=y] (update a key)
+* put /region/cell/key?value=x[&tag=y] (update a key)
+* put /region/cell/machine/key?value=x&[tag=y] (update a key)
 
-* put /config/key (update one more more keys)
-
-``
-{[{"key": "value", "tag": "value"}, {"key2": "value2", "tag": "value2" }, [..]}
-``
-
-* put /config/region (update one more more keys)
+* put / (update one more more keys at the global level)
 
 ``
 {[{"key": "value", "tag": "value"}, {"key2": "value2", "tag": "value2" }, [..]}
 ``
 
-* put /config/region/cell (update one more more keys)
+* put /region (update one more more keys, at this level of the hierarchy)
 
 ``
 {[{"key": "value", "tag": "value"}, {"key2": "value2", "tag": "value2" }, [..]}
 ``
 
-* put /config/region/cell/machine (update one more more keys)
+* put /region/cell (update one more more keys, at this level of the hierarchy)
 
 ``
 {[{"key": "value", "tag": "value"}, {"key2": "value2", "tag": "value2" }, [..]}

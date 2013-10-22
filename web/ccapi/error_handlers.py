@@ -11,11 +11,13 @@ def error(code, *args, **kwargs):
 
 # Error Handler for 400's, REQUEST errors.
 def four_oh_oh(*args, **kwargs):
+    app.logger.debug("CAUGHT 400: %s, %s" % (str(args), str(kwargs)))
     error = {"code": 400, "type": "client request error", "message": args, "details": kwargs}
     return json.dumps(error), 400
 
 # 404's Resources Not Found
 def four_oh_four(*args, **kwargs):
+    app.logger.debug("CAUGHT 404: %s, %s" % (str(args), str(kwargs)))
     error = {"code": 404, "type": "resource not found", "message": args, "details": kwargs}
     return json.dumps(error), 404
 
