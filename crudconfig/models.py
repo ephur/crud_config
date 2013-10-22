@@ -66,7 +66,21 @@ class Value(Base):
         self.value = unicode(value) 
 
     def __repr__(self):
-        return "<Value(%d, '%s')>" % ( int(self.key_id), unicode(self.value) )
+        return "<Value(%d, '%s')>" % (
+
+         int(self.key_id), unicode(self.value) )
+''' API Keys are used for Authing Clients not in LDAP '''
+class ApiKey(Base):
+    __tablename__ = "apikeys"
+
+    id = Column(Integer, Sequence('apikeys_id_seq'), primary_key=True)
+    api_key = Column(UnicodeText, nullable=False)
+
+    def __init__(self, api_key):
+        self.api_key = unicode(api_key)
+
+    def __repr__(self):
+        return "<ApiKey('%s')>" % (self.api_key)
 
 # @TODO (ephur): Figure this out Working on implementing this filter, so the tag can be 
 # filtered on properly when fetching child relationships in a container object

@@ -3,6 +3,7 @@ import exceptions as ce
 try:
     from keyczar import keyczar
     from keyczar import errors as kcerrors
+    import base64
 except ImportError as e:
     raise ce.CryptoError("cloud not import Key Czar, can't use CrudConfig")
 
@@ -30,8 +31,7 @@ class CrudConfig(object):
 
         # Initialize The Crypto Object
         try:
-            keypath = kwargs['keypath']
-            self.crypter = keyczar.Crypter.Read(keypath)
+            self.keypath = kwargs['keypath']
         except KeyError as e:
             raise ce.CryptoError("Cannot init %s, need to pass keypath argument" % (self.__class__))
         except kcerrors.KeyczarError as e:
@@ -41,6 +41,7 @@ class CrudConfig(object):
         self.db = self.__db_init(**(kwargs))
         self._Session = scoped_session(sessionmaker(bind=self.db))
         self.session = self._Session()
+        self.crypter = None
         # Make sure the tables & seed data are proper
         self.__check_first_run()
 
@@ -73,6 +74,8 @@ class CrudConfig(object):
         # can't index this in the DB since we allow text. Adding is a somewhat
         # slow operation because of this duplicate check
         try:
+            if self.crypter is None:
+                self.crypter = keyczar.Crypter.Read(self.keypath)
             value = self.crypter.Encrypt(raw_value)
             v = self.get_value(key_id, value)
         except ce.NoResult as e:
@@ -180,6 +183,41 @@ class CrudConfig(object):
                 self.session.rollback()
                 raise ce.NoResult("There's no match!")
         return top_record
+
+    def add_api_key(self, raw_apikey=None):
+        if raw_apikey is None:
+            import uuid
+            raw_apikey = str(uuid.uuid4())
+        if self.crypter is None:
+            self.crypter = keyczar.Crypter.Read(self.keypath)
+        apikey = unicode(base64.b64encode(self.crypter.primary_key.Sign(raw_apikey)))
+
+        try:
+            key = self.session.query(ApiKey).filter(ApiKey.api_key == apikey).one()
+        except sqlormerrors.MultipleResultsFound as e:
+            self.session.rollback()
+            raise ce.NotUnique("This key exists multiple times, that's not right man")
+        except sqlormerrors.NoResultFound as e:
+            self.session.rollback()
+            key=ApiKey(apikey)
+            self.session.add(key)
+            self.session.commit()
+        return (raw_apikey, key)
+
+    def check_api_key(self, raw_apikey):
+        if self.crypter is None:
+            self.crypter = keyczar.Crypter.Read(self.keypath)
+        apikey = unicode(base64.b64encode(self.crypter.primary_key.Sign(raw_apikey)))
+
+        try:
+            key = self.session.query(ApiKey).filter(ApiKey.api_key == apikey).one()
+            return True
+        except sqlormerrors.MultipleResultsFound as e:
+            self.session.rollback()
+            return False 
+        except sqlormerrors.NoResultFound as e:
+            self.session.rollback()
+            return False
 
     def __check_first_run(self):
         Base.metadata.create_all(self.db, checkfirst=True)

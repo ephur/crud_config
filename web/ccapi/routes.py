@@ -1,7 +1,27 @@
 import flask
 from ccapi import app
 
+import util
 import gets
+import puts
+import posts
+import deletes
+from ccapi.error_handlers import error
+
+# Need to do an auth lookup on any and all requests
+@app.before_request
+def before_request():
+    app.logger.debug("trying to auth...")
+    try:
+        auth = ("APIKEY", flask.request.headers['X-API-Auth'])
+    except KeyError as e:
+        try:
+            auth = ("LDAP", flask.request.headers['X-SSO-Auth'])
+        except KeyError as e:
+            return(error(403, "authentication headers not provided", validheaders=['X-API-Auth', 'X-SSO-Auth']))
+    if util.checkAuth(auth) is not True:
+        return(error(403, "invalid authentication informationed provided"))
+
 
 # The catch all for GET requests. This will cover the majority of 
 # gets that come through this API. 
@@ -10,8 +30,31 @@ import gets
 def get_index(path):
     return gets.get_main(path)
 
+# Catch all for put methods, these update existing keys/values
+@app.route("/", methods=['PUT'], defaults={'path': ''})
+@app.route('/<path:path>', methods=['PUT'])
+def put_index(path):
+    return puts.put_main(path)
+
+# Catch all for post methods, these add new containers/keys/values
+@app.route("/", methods=['POST'], defaults={'path': ''})
+@app.route('/<path:path>', methods=['POST'])
+def post_index(path):
+    return posts.post_main(path)
+
+# Catch all for deletes, these remove containers/keys/values
+@app.route("/", methods=['DELETE'], defaults={'path': ''})
+@app.route('/<path:path>', methods=['DELETE'])
+def delete_index(path):
+    return deletes.delete_main(path)
+
+# Copy a TAG
+@app.route("/operations/tag/copy", methods=['PUT'])
+def put_copytag():
+    return puts.copytag()
+
 # When running in debug mode, allow a caller to GET /clear
 # in order to empty the cache.
-@app.route("/clear", methods=['GET'])
+@app.route("/operations/cache/clear", methods=['GET'])
 def clear_cache():
     return gets.get_clear()
