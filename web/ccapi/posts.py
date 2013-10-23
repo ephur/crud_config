@@ -65,7 +65,6 @@ def post_invalidate_cache(path, request_data):
 
     try:
         for item in request_data['keyvals']:
-            app.logger.debug(item)
             keys.append(path + "?KEY=" + item['key'].upper())
             keys.append(path + "?KEY=" + item['key'].upper() + "&TAG=GLOBAL")
             try:
