@@ -1,7 +1,7 @@
 import flask
 from logging import Formatter
 
-# Define the initial APP Object 
+# Define the initial APP Object
 app = flask.Flask(__name__)
 app.config.from_object('config')
 

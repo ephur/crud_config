@@ -1,12 +1,18 @@
-from ccapi import app 
+from ccapi import app
 import crudconfig
 
 from werkzeug.contrib.cache import MemcachedCache
 
+
 def toBool(string):
-    if str(string).upper() in ['YES', 'Y', '1', 'TRUE', 'T', 'YE']: return True
-    if str(string).upper() in ['N', 'NO', 'FALSE', 'F', '0', "0.0", "[]", "{}", "NONE", ""]: return False
+    falses = ['N', 'NO', 'FALSE', 'F', '0', "0.0", "[]", "{}", "NONE", ""]
+    trues = ['YES', 'Y', '1', 'TRUE', 'T', 'YE']
+    if str(string).upper() in trues:
+        return True
+    if str(string).upper() in falses:
+        return False
     raise ValueError("Unknown Boolean Value %s" % (str(string).upper()))
+
 
 def checkAuth(auth):
     (auth_type, auth_value) = auth
@@ -18,11 +24,12 @@ def checkAuth(auth):
 
     # Auth is not cached
     if auth_type.upper() == "APIKEY":
-        cconfig = crudconfig.CrudConfig(keypath=app.config['KEYPATH'], 
-                                        db_name=app.config['DATABASE_DB'],
-                                        db_username=app.config['DATABASE_USER'],
-                                        db_password=app.config['DATABASE_PASS'],
-                                        db_host=app.config['DATABASE_HOST'])
+        cconfig = crudconfig.CrudConfig(
+            keypath=app.config['KEYPATH'],
+            db_name=app.config['DATABASE_DB'],
+            db_username=app.config['DATABASE_USER'],
+            db_password=app.config['DATABASE_PASS'],
+            db_host=app.config['DATABASE_HOST'])
         if cconfig.check_api_key(auth_value) is True:
             cache.set(cache_key, True, timeout=app.config['CACHE_AUTH'])
             return True
