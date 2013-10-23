@@ -2,6 +2,8 @@ class CrudException(Exception):
     def __call__(self, *args):
         return self.__class__(*(self.args + args))
 
+class RequirementsError(CrudException): pass
+
 class CryptoError(CrudException): pass
 
 class DBError(CrudException): pass

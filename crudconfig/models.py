@@ -56,7 +56,7 @@ class Value(Base):
 
     id = Column(Integer, Sequence('value_id_seq'), primary_key=True)
     key_id = Column(Integer, ForeignKey('keys.id'), nullable=False, index=True)
-    value = Column(UnicodeText, nullable=False)
+    value = Column(Text, nullable=False)
     added = DateTime()
     updated = DateTime()
 
@@ -68,18 +68,24 @@ class Value(Base):
         return "<Value(%d, '%s')>" % (
 
          int(self.key_id), unicode(self.value) )
+
+
 ''' API Keys are used for Authing Clients not in LDAP '''
 class ApiKey(Base):
     __tablename__ = "apikeys"
 
     id = Column(Integer, Sequence('apikeys_id_seq'), primary_key=True)
     api_key = Column(UnicodeText, nullable=False)
+    valid = Column(Boolean)
+    owner = Column(Unicode(128), nullable=True)
 
-    def __init__(self, api_key):
+    def __init__(self, api_key, owner, valid=1):
         self.api_key = unicode(api_key)
+        self.owner = unicode(owner)
+        self.valid = int(valid)
 
     def __repr__(self):
-        return "<ApiKey('%s')>" % (self.api_key)
+        return "<ApiKey('%s','%s','%d')>" % (self.api_keym, self.owner, self.valid)
 
 # @TODO (ephur): Figure this out Working on implementing this filter, so the tag can be 
 # filtered on properly when fetching child relationships in a container object
