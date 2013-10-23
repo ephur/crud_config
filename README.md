@@ -18,46 +18,64 @@ Create new values in the configuration store. If a value already exists a 422 wi
 In post requests, you can include copyfrom in the JSON dictionary, and all keys/values/tags will be copied from an existing region/cell/machine (it must exist in the same container)
 
 ### post requests 
-* post /config/   (create a new config value in the global area)
+* post /   (Create new containers / keyvalues in the global area:)
 
 ``
-{[{"key": "value", "tag": "value"}, {"key2": "value2", "tag": "value2" }, [..]}
+{
+  "containers":
+  [
+    {"name": "c0099", "description": "Cell 0099 in DFW"},
+    {"name": "c0100", "description": "Cell c0100 in DFW"}
+  ],
+  "keyvals":
+  [
+    { "key": "a_key", "tag": "v499", "value": "a_value"},
+    { "key": "b_key", "value": "b_value" }
+  ]
+}
 ``
 
-* post /config (create a region in the global area)
+* post / (Create keyvalues in the global area)
 
 ``
-{region: [name, name2, name3], copyfrom: cell }
-``
-
-* post /config/region (create a new config value in a region)
-
-``
-{[{"key": "value", "tag": "value"}, {"key2": "value2", "tag": "value2" }, [..]}
-``
-
-* post /config/region (create a new cell in a region)
+{
+  "keyvals":
+  [
+    { "key": "a_key", "tag": "v499", "value": "a_value"},
+    { "key": "b_key", "value": "b_value" }
+  ]
+}
 
 ``
-{cell: [name, name2, name3], copyfrom: cell }
-``
 
-* post /config/region/cell (create a new config value in a cell)
+* post /path/to/a/container  (Create new containers/keyvalues in the container at this path)
 
 ``
-{[{"key": "value", "tag": "value"}, {"key2": "value2", "tag": "value2" }, [..]}
+{
+  "containers":
+  [
+    {"name": "c0099", "description": "Cell 0099 in DFW"},
+    {"name": "c0100", "description": "Cell c0100 in DFW"}
+  ],
+  "keyvals":
+  [
+    { "key": "a_key", "tag": "v499", "value": "a_value"},
+    { "key": "b_key", "value": "b_value" }
+  ]
+}
 ``
 
-* post /config/region/cell (create a new machine in a cell)
+* post /path/to/a/container (Create keyvalues in the container at this path)
 
 ``
-{machine: [name, name2, name3] copyfrom: machine  }
-``
+{
+  "keyvals":
+  [
+    { "key": "a_key", "tag": "v499", "value": "a_value"},
+    { "key": "b_key", "value": "b_value" }
+  ]
+}
 
-* post /config/region/cell/machine
-
-``
-{[{"key": "value", "tag": "value"}, {"key2": "value2", "tag": "value2" }, [..]}
 ``
 
 
