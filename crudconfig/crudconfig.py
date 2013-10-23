@@ -176,7 +176,7 @@ class CrudConfig(object):
         if tag is None:
             tag = self.default_tag
         try:
-            c = self.get_container(container, tag=tag)
+            c = self.get_container(container)
             k = self.session.query(Key).filter(Key.tag == unicode(tag),
                                                Key.container_id == c.id,
                                                Key.name == unicode(name)).one()
@@ -299,9 +299,9 @@ class CrudConfig(object):
 
         # Create the list to go through to find the requested container
         try:
-            containers = [int(tree)]
+            containers = [int(container)]
         except ValueError:
-            containers = tree.lstrip("/").rstrip("/").split("/")
+            containers = container.lstrip("/").rstrip("/").split("/")
 
         # Start at the top, and recurse to get the final container
         top_record = self.session.query(Container).filter(
@@ -331,7 +331,7 @@ class CrudConfig(object):
         # After iterating, top_record was the final container requested
         return top_record
 
-    def add_api_key(self, raw_apikey=None):
+    def add_api_key(self, raw_apikey=None, owner=None, valid=True):
         """
         Add an API Key
 
@@ -341,6 +341,8 @@ class CrudConfig(object):
 
         :param raw_apikey: API key to use. If this optional param is omitted
                            a UUID4 type api_key will be automatically returned.
+        :param owner: The name of the owner (optional: default None)
+        :param valid: Is the API key valid (optional: default True)
         """
 
         # If an api key is not provided, generate one
@@ -360,7 +362,7 @@ class CrudConfig(object):
             raise ce.NotUnique("This API key already exists")
         except sqlormerrors.NoResultFound as e:
             self.session.rollback()
-            key = ApiKey(apikey)
+            key = ApiKey(apikey, owner, valid)
             self.session.add(key)
             self.session.commit()
         return (raw_apikey, key)
