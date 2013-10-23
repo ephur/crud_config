@@ -17,11 +17,10 @@ class Container(Base):
     children = relationship("Container", backref=backref('parent', remote_side=[id]))
     __table_args__ = (UniqueConstraint('name', 'parent_id', name="containers_idx_parent_name_uc"),   
                      )
-    def __init__(self, name, description, parent_id, tag):
+    def __init__(self, name, description, parent_id):
         self.name = unicode(name)
         self.description = unicode(description)
         self.parent_id = parent_id
-        self.tag = unicode(tag)
 
     def __repr__(self):
         return "<Container(%s', '%s', %d)>" % (unicode(self.name), unicode(self.description), self.parent_id)

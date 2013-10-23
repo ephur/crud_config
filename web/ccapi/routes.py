@@ -11,7 +11,6 @@ from ccapi.error_handlers import error
 # Need to do an auth lookup on any and all requests
 @app.before_request
 def before_request():
-    app.logger.debug("trying to auth...")
     try:
         auth = ("APIKEY", flask.request.headers['X-API-Auth'])
     except KeyError as e:
