@@ -17,67 +17,30 @@ Create new values in the configuration store. If a value already exists a 422 wi
 
 In post requests, you can include copyfrom in the JSON dictionary, and all keys/values/tags will be copied from an existing region/cell/machine (it must exist in the same container)
 
-### post requests 
-* post /   (Create new containers / keyvalues in the global area:)
+### post requests
+* post /  (Create new containers / keyvalues in the global area)
 
 ``
-{
-  "containers":
-  [
-    {"name": "c0099", "description": "Cell 0099 in DFW"},
-    {"name": "c0100", "description": "Cell c0100 in DFW"}
-  ],
-  "keyvals":
-  [
-    { "key": "a_key", "tag": "v499", "value": "a_value"},
-    { "key": "b_key", "value": "b_value" }
-  ]
-}
+{ "containers": [  {"name": "c0099", "description": "Cell 0099 in DFW"},  {"name": "c0100", "description": "Cell c0100 in DFW"} ], "keyvals":  [ { "key": "a_key", "tag": "v499", "value": "a_value"}, { "key": "b_key", "value": "b_value" } ] } 
 ``
 
 * post / (Create keyvalues in the global area)
 
-``
-{
-  "keyvals":
-  [
-    { "key": "a_key", "tag": "v499", "value": "a_value"},
-    { "key": "b_key", "value": "b_value" }
-  ]
-}
-
+`` 
+{ "keyvals":  [ { "key": "a_key", "tag": "v499", "value": "a_value"}, { "key": "b_key", "value": "b_value" } ] }
 ``
 
 * post /path/to/a/container  (Create new containers/keyvalues in the container at this path)
 
 ``
-{
-  "containers":
-  [
-    {"name": "c0099", "description": "Cell 0099 in DFW"},
-    {"name": "c0100", "description": "Cell c0100 in DFW"}
-  ],
-  "keyvals":
-  [
-    { "key": "a_key", "tag": "v499", "value": "a_value"},
-    { "key": "b_key", "value": "b_value" }
-  ]
-}
+ { "containers": [ {"name": "c0099", "description": "Cell 0099 in DFW"},  {"name": "c0100", "description": "Cell c0100 in DFW"} ], "keyvals": [ { "key": "a_key", "tag": "v499", "value": "a_value"}, { "key": "b_key", "value": "b_value" } ] }
 ``
 
 * post /path/to/a/container (Create keyvalues in the container at this path)
 
 ``
-{
-  "keyvals":
-  [
-    { "key": "a_key", "tag": "v499", "value": "a_value"},
-    { "key": "b_key", "value": "b_value" }
-  ]
-}
-
+{ "keyvals": [ { "key": "a_key", "tag": "v499", "value": "a_value"}, { "key": "b_key", "value": "b_value" } ] }
 ``
-
 
 ## RETRIEVE: retrieve configuration information
 A key is optional in get operations, but does change the behavior of the return. If no key is provided, then ALL keys defined at the level requested are returned, optionally keys matching the tagare returned. If a particular key is requested.
