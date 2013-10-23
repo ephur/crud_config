@@ -42,7 +42,7 @@ In post requests, you can include copyfrom in the JSON dictionary, and all keys/
 
 * post / (Create keyvalues in the global area)
 
-```javascript
+```json
 {
     "keyvals": [{
         "key": "a_key",
