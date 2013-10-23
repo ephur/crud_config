@@ -81,13 +81,6 @@ In post requests, you can include copyfrom in the JSON dictionary, and all keys/
 
 ```json
 {
-    "containers": [{
-        "name": "c0099",
-        "description": "Cell 0099 in DFW"
-    }, {
-        "name": "c0100",
-        "description": "Cell c0100 in DFW"
-    }],
     "keyvals": [{
         "key": "a_key",
         "tag": "v499",
