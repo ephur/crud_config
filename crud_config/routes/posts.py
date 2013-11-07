@@ -1,24 +1,23 @@
 import flask
 import simplejson as json
-import crudconfig
-import crudconfig.exceptions as ce
+import crud_config
+import crud_config.crud.retrieve as ccget
+import crud_config.crud.update as ccput
+import crud_config.crud.delete as ccdelete
+import crud_config.crud.create as ccpost
+import crud_config.exceptions as ce
 
-from ccapi import app
-from ccapi.error_handlers import error
+from crud_config.error_handlers import error
+from crud_config import app
 from werkzeug.contrib.cache import MemcachedCache
 
 
 def post_main(path):
     # A function that matches post_process_{valid_key} must exist
     valid_keys = ['containers', 'keyvals']
-    cconfig = crudconfig.CrudConfig(keypath=app.config['KEYPATH'],
-                                    db_name=app.config['DATABASE_DB'],
-                                    db_username=app.config['DATABASE_USER'],
-                                    db_password=app.config['DATABASE_PASS'],
-                                    db_host=app.config['DATABASE_HOST'])
     try:
-        container = cconfig.get_container(path)
-    except ce.NoResult:
+        container = ccget.get_container(path)
+    except ce.noResult:
         return(error(
                404,
                "Container you want to post to is not found",
@@ -34,11 +33,12 @@ def post_main(path):
     # Load the JSON data, and validate it
     try:
         request_data = json.loads(flask.request.get_data())
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as e:
         return(error(
                400,
                "JSON Data is invalid",
-               escaped_data_submitted=flask.request.get_data()))
+               escaped_data_submitted=flask.request.get_data(), 
+               parsing_error=e.message))
 
     # Check for invalid keys
     for key in sorted(request_data.keys()):
@@ -55,7 +55,6 @@ def post_main(path):
         except (KeyError) as e:
             continue
         return_data = globals()["post_process_" + key](
-            cconfig,
             local_data,
             container_id=container.id,
             processed_so_far=return_data)
@@ -95,7 +94,7 @@ def post_invalidate_cache(path, request_data):
     return None
 
 
-def post_process_containers(cconfig, data, **kwargs):
+def post_process_containers(data, **kwargs):
     cid = kwargs['container_id']
     return_data = kwargs['processed_so_far']
     try:
@@ -120,11 +119,11 @@ def post_process_containers(cconfig, data, **kwargs):
 
             try:
                 return_data.append("Created:" +
-                                   str(cconfig.add_container(
+                                   str(ccpost.add_container(
                                        cid,
                                        name,
                                        desc)))
-            except ce.NotUnique:
+            except ce.notUnique:
                 return_data.append("Container Not Added, Already Exists: %s" %
                                    (name))
 
@@ -138,7 +137,7 @@ def post_process_containers(cconfig, data, **kwargs):
     return return_data
 
 
-def post_process_keyvals(cconfig, data, **kwargs):
+def post_process_keyvals(data, **kwargs):
     cid = kwargs['container_id']
     return_data = kwargs['processed_so_far']
     try:
@@ -170,7 +169,7 @@ def post_process_keyvals(cconfig, data, **kwargs):
                 tag = None
 
             return_data.append("Created:" + str(
-                               cconfig.add_keyval(cid, key, value, tag)))
+                               ccpost.add_keyval(cid, key, value, tag)))
 
     except TypeError as e:
         return(error(

@@ -1,12 +1,12 @@
 import flask
-from ccapi import app
+from crud_config import app
 
-import util
+import crud_config.util as util
+from crud_config.error_handlers import error
 import gets
 import puts
 import posts
 import deletes
-from ccapi.error_handlers import error
 
 
 # Need to do an auth lookup on any and all requests

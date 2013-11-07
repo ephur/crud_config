@@ -11,9 +11,24 @@ DEFAULT_TAG = 'GLOBAL'
 Security Settings
 """
 # Path to keyczar keys
-KEYPATH = '/etc/some/secure/path/keys'
+KEYPATH = '/Users/ephur/Projects/VirtualEnvs/crudconfig2/crud_config/etc/keys'
 # Used to keep sessions secure ; unimplemented
-SECRET_KEY = 'some_random_key'
+SECRET_KEY = 'jgtTMdRkuwmMfwYf9j4hryJVMCnsMCToYvPM3zgKW3vVUnwpe7whHumstNUg'
+
+"""
+Database Connection Settings
+"""
+# Database server host (IP Adress or Hostname)
+DATABASE_HOST = "localhost"
+# Port to connect to on the DB Server
+DATABASE_PORT = 3306
+# Username for DB Connections
+DATABASE_USER = "cc"
+# Password for DB Connections
+DATABASE_PASS = "cc_test"
+# Database to use
+DATABASE_DB = "crud_config"
+
 
 """
 Cache settings
@@ -28,18 +43,3 @@ CACHE_LOCKING_SECONDS = 3
 CACHE_DEFAULT_AGE_SECONDS = 600
 # How long to cache auth requests for in seconds
 CACHE_AUTH = 60*60*3
-
-
-"""
-Database Connection Settings
-"""
-# Database server host (IP Adress or Hostname)
-DATABASE_HOST = "localhost"
-# Port to connect to on the DB Server
-DATABASE_PORT = 3306
-# Username for DB Connections
-DATABASE_USER = "user"
-# Password for DB Connections
-DATABASE_PASS = "password"
-# Database to use
-DATABASE_DB = "crud_config"

@@ -1,17 +1,20 @@
 import flask
-import simplejson as json
-import crudconfig
-from ccapi import app
-from ccapi.error_handlers import error
+import crud_config.crud.retrieve as ccget
+import crud_config.crud.update as ccput
+import crud_config.crud.delete as ccdelete
+import crud_config.crud.create as ccpost
+import crud_config.exceptions as ce
+from crud_config.error_handlers import error
 
-from keyczar import keyczar
+import simplejson as json
+
+from crud_config import app
 from werkzeug.contrib.cache import MemcachedCache
 from time import sleep
 from random import random
 
 cache_servers = app.config['MEMCACHE_SERVERS'].split(",")
 cache = MemcachedCache(cache_servers)
-
 
 def get_main(path):
     # This will handle all gets that are not otherwise defined.
@@ -67,23 +70,13 @@ def get_main(path):
             app.logger.debug(
                 "I'm doing the loading after a sleep of %f seconds" %
                 (sleeptime))
-            cconfig = crudconfig.CrudConfig(
-                keypath=app.config['KEYPATH'],
-                db_name=app.config['DATABASE_DB'],
-                db_username=app.config['DATABASE_USER'],
-                db_password=app.config['DATABASE_PASS'],
-                db_host=app.config['DATABASE_HOST'])
-
-            # When accessing values via the objects returned by SQLAlchemy
-            # need to handle the decryption
-            crypter = keyczar.Crypter.Read(app.config['KEYPATH'])
 
             if request_key is not None:
                 # A single Key is requested
                 try:
-                    key = cconfig.get_key(path, request_key, tag=request_tag)
-                except crudconfig.exceptions.NoResult:
-                    flask.abort(404)
+                    key = ccget.get_key(path, request_key, tag=request_tag)
+                except ce.noResult:
+                    return error(404, "key not found", requested_key=request_key, requested_container=path, applied_tag=request_tag)
 
                 return_key = {key.name: {"values": list()}}
                 return_key[key.name]['tag'] = key.tag
@@ -92,13 +85,8 @@ def get_main(path):
                 # return_key['updated'] = key.updated
 
                 for v in key.values:
-                    try:
-                        return_key[key.name]['values'].append(
-                            {'id': v.id, 'value': crypter.Decrypt(v.value)})
-                    except (keyczar.errors.ShortCiphertextError,
-                            keyczar.errors.Base64DecodingError) as e:
-                        return_key[key.name]['values'].append(
-                            {'id': v.id, 'value': v.value})
+                    return_key[key.name]['values'].append(
+                            {'id': v.id, 'value': v.value } )
 
                 cache.set(cache_key,
                           json.dumps(return_key),
@@ -106,9 +94,9 @@ def get_main(path):
 
             else:
                 try:
-                    container = cconfig.get_container(path)
-                except crudconfig.exceptions.NoResult:
-                    flask.abort(404)
+                    container = ccget.get_container(path)
+                except ce.noResult:
+                    return error(404, "container not found", requested_container=path)
                 all_containers = [container.id]
                 all_values = dict()
                 while container.parent is not None:
@@ -116,7 +104,7 @@ def get_main(path):
                     if container is not None:
                         all_containers.append(container.id)
                 for container in reversed(all_containers):
-                    c = cconfig.get_container(container)
+                    c = ccget.get_container(container)
                     for key in c.keys:
                         if ((key.tag != request_tag and
                              key.tag != app.config['DEFAULT_TAG'])):
@@ -131,14 +119,8 @@ def get_main(path):
                                                 'tag': key.tag,
                                                 'id': key.id}
                         for value in key.values:
-                            try:
-                                all_values[key.name]['values'].append(
-                                    {'id': value.id, 'value':
-                                     crypter.Decrypt(value.value)})
-                            except (keyczar.errors.ShortCiphertextError,
-                                    keyczar.errors.Base64DecodingError) as e:
-                                all_values[key.name]['values'].append(
-                                    {'id': value.id, 'value': value.value})
+                            all_values[key.name]['values'].append(
+                                {'id': value.id, 'value': value.value })
 
                 cache.set(cache_key,
                           json.dumps(all_values),
@@ -147,7 +129,6 @@ def get_main(path):
         cache.delete("loading-" + cache_key)
         cache_result = cache.get(cache_key)
     return cache_result
-
 
 def get_clear():
     if app.config['DEBUG'] is True:

@@ -1,12 +1,12 @@
 import os
-from setuptools import setup 
+from setuptools import setup, find_packages
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(
     name = "crud_config",
-    version = "0.1a",
+    version = read(versiont)
     author = "Richard Maynard",
     author_email = "richard.maynard@[rackspace|gmail].com",
     description = ("A utility library to handle CRUD RestAPI operations"),
@@ -22,6 +22,11 @@ setup(
         "Programming Language :: Python :: 2",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
+    packages=find_packages(),
+    include_package_data=True,
+    install_requires=['flask',
+                      'Flask-SQLAlchemy',
+                      'simplejson',
+                      'SQLAlchemy',
+                      'MySQL-python'],
 )
-
-

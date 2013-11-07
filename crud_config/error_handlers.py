@@ -1,6 +1,5 @@
 import flask
-from ccapi import app
-
+from crud_config import app
 import simplejson as json
 
 
