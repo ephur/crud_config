@@ -1,5 +1,6 @@
 from crud_config import db
 from crud_config.models import *
+from sqlalchemy.orm.collections import attribute_mapped_collection
 
 
 class Container(db.Model):
@@ -16,7 +17,8 @@ class Container(db.Model):
                        index=True)
     keys = db.relationship("Key", backref='container')
     children = db.relationship("Container",
-                            backref=db.backref('parent', remote_side=[id]))
+                            backref=db.backref('parent', remote_side=[id]),
+                            collection_class=attribute_mapped_collection('name'))
     __table_args__ = (db.UniqueConstraint('name',
                                        'parent_id',
                                        name="containers_idx_parent_name_uc"),)
@@ -31,3 +33,17 @@ class Container(db.Model):
             unicode(self.name),
             unicode(self.description),
             str(self.parent_id))
+
+    def dumptree(self, inner=False):
+        values = { self.name: { } }
+
+        if len(self.children.values()) > 0:
+            for c in self.children.values():
+                values[self.name][c.name] = c.dumptree(inner=True)
+        # else:
+        #     values[self.name] = dict()
+
+        if inner is False:
+            return values
+        else:
+            return values[self.name]

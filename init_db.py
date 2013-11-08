@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-import sys
 from crud_config import db
 from crud_config.models import *
+import sys
 
 db.create_all()
 container = Container.query.filter_by(name=unicode('root')).first()

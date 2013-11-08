@@ -4,6 +4,7 @@ import crud_config.crud.update as ccput
 import crud_config.crud.delete as ccdelete
 import crud_config.crud.create as ccpost
 import crud_config.exceptions as ce
+import crud_config.util
 from crud_config.error_handlers import error
 
 import simplejson as json
@@ -15,6 +16,73 @@ from random import random
 
 cache_servers = app.config['MEMCACHE_SERVERS'].split(",")
 cache = MemcachedCache(cache_servers)
+
+def get_list(path):
+    """
+    This will return a list of all containers inside of another 
+    container
+
+    Setting ?recursive=true will get all the child containers,
+    until there are no more children and provide a full container
+    tree
+    """
+    cache_key = "list/" + path + "?" + "&".join(
+        ["%s=%s" % (k.upper(), v.upper()) for k, v in sorted(
+         flask.request.args.iteritems())])
+    app.logger.debug("Using Cache Key: %s" % (cache_key))
+    loadkey = "loading-" + cache_key
+    cache_result = cache.get(cache_key)
+    loops = 0
+    while cache_result is None:
+        loops += 1
+        if loops > 50:
+            return error(500,
+                         message="item never became available in cache",
+                         debug="%d: %s" % (loops, cache_key))
+        app.logger.debug("%s is not cached, checked %d times" %
+                         (cache_key, loops))
+        sleeptime = random() / 10
+        sleep(sleeptime)
+        if ((cache.get("loading-" + cache_key) is None and
+            cache.get(cache_key) is None)):
+
+            cache.set("loading-" + cache_key, "True",
+                      timeout=app.config['CACHE_LOCKING_SECONDS'])
+            request_recursive = False
+            for (k, v) in flask.request.args.iteritems():
+                if k.upper() == "RECURSIVE":
+                    try:
+                        request_recursive = crud_config.util.toBool(v)
+                    except ValueError as e:
+                        return error(400,
+                                     "client error",
+                                     "invalid querystring",
+                                     recursion_request_value=v)
+                else:
+                    return error(400,
+                                 "client error",
+                                 "invalid query string",
+                                 key=k,
+                                 value=v,
+                                 path=cache_key
+                                 )
+            app.logger.debug("loading %s after %f seconds wait" % (cache_key, sleeptime))
+            container = ccget.get_container(path)
+            if request_recursive is True:
+                print container.dumptree()
+                cache.set(cache_key,
+                          json.dumps(container.dumptree()),
+                          timeout=app.config['CACHE_DEFAULT_AGE_SECONDS'])
+            else:
+                print container.children
+                cache.set(cache_key,
+                          json.dumps([x for x in container.children.keys()]),
+                          timeout=app.config['CACHE_DEFAULT_AGE_SECONDS'])
+
+        cache.delete("loading-" + cache_key)
+        cache_result = cache.get(cache_key)
+    return cache_result
+
 
 def get_main(path):
     # This will handle all gets that are not otherwise defined.
@@ -62,6 +130,7 @@ def get_main(path):
                     # and make clearing the cache possible for posts/puts
                     return(error(
                            400,
+                           "client error"
                            "invalid query string parameters",
                            key=k,
                            value=v,

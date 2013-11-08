@@ -54,6 +54,13 @@ def post_index(path):
 def delete_index(path):
     return deletes.delete_main(path)
 
+################################
+# All of the operations routes #
+################################
+@app.route("/operations/container/list", methods=['GET'], defaults={'path': ''})
+@app.route("/operations/container/list/<path:path>", methods=['GET'])
+def get_list(path):
+    return gets.get_list(path)
 
 # Copy a TAG
 @app.route("/operations/tag/copy", methods=['PUT'])

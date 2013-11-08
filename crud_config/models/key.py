@@ -2,6 +2,7 @@ from crud_config import db
 from crud_config.models import *
 import datetime
 
+
 class Key(db.Model):
     """
     A key is tagged, and lives inside of a container. A key is a container
