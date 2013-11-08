@@ -6,7 +6,7 @@ def read(fname):
 
 setup(
     name = "crud_config",
-    version = read(versiont)
+    version = "0.1a",
     author = "Richard Maynard",
     author_email = "richard.maynard@[rackspace|gmail].com",
     description = ("A utility library to handle CRUD RestAPI operations"),
@@ -29,4 +29,5 @@ setup(
                       'simplejson',
                       'SQLAlchemy',
                       'MySQL-python'],
+
 )
