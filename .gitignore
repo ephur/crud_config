@@ -16,3 +16,4 @@ crud_config.egg-info/
 dist/
 web/config.py
 web/crudconfig
+tools/test.py
