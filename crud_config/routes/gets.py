@@ -26,7 +26,7 @@ def get_list(path):
     until there are no more children and provide a full container
     tree
     """
-    cache_key = "list/" + path + "?" + "&".join(
+    cache_key = "/operations/container/list" + path + "?" + "&".join(
         ["%s=%s" % (k.upper(), v.upper()) for k, v in sorted(
          flask.request.args.iteritems())])
     app.logger.debug("Using Cache Key: %s" % (cache_key))
@@ -86,7 +86,7 @@ def get_list(path):
 
 def get_main(path):
     # This will handle all gets that are not otherwise defined.
-    cache_key = path + "?" + "&".join(
+    cache_key = "/" + path + "?" + "&".join(
         ["%s=%s" % (k.upper(), v.upper()) for k, v in sorted(
          flask.request.args.iteritems())])
     app.logger.debug("Using Cache Key: %s" % (cache_key))

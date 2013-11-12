@@ -65,34 +65,61 @@ def post_main(path):
             return return_data
 
     # Time to clean up the caches...
-    post_invalidate_cache(path, request_data)
+    #post_invalidate_cache(path, request_data)
+    purge(path, request_data)
     return json.dumps({"results": return_data})
 
 
-def post_invalidate_cache(path, request_data):
+def purge(path, params):
+    """
+    This is to invalidate cache items that are submitted.
+    """
     cache = MemcachedCache(app.config['MEMCACHE_SERVERS'].split(","))
-    keys = list()
-    keys.append(path)
-    keys.append(path + "?")
+
+    # Each of the containers so the top level containers can be purged
+    path_parts = path.split("/")
+    # The starting point for purge requests
+    base_path = ""
+    # Hold a list of the keys to purge
+    purge_keys = []
 
     try:
-        for item in request_data['keyvals']:
-            keys.append(path + "?KEY=" + item['key'].upper())
-            keys.append(path + "?KEY=" + item['key'].upper() + "&TAG=GLOBAL")
-            try:
-                keys.append(path + "?KEY=" + item['key'].upper() +
-                            "&TAG=" + item['tag'].upper())
-            except KeyError as e:
-                pass
-
+        containers = params['containers']
     except KeyError as e:
+        containers = list()
         pass
 
-    for key in keys:
-        app.logger.debug("Purge Key:" + key)
-        cache.delete(key)
-    return None
+    # Purge keys for the items in the tree up to the final one submitted
+    while len(path_parts) > 0:
+        base_path = base_path + "/" + path_parts.pop(0)
+        purge_keys.append(base_path)
 
+    # Generate the URI's to purge based on the keyvals updated
+    try:
+        keyvals = params['keyvals']
+    except KeyError as e:
+        keyvals = list()
+        pass
+
+    # Purge the container level items for the containers updated
+    for item in containers:
+        purge_keys.append(base_path + "/" + item['name'])
+        purge_keys.append(base_path + "/OPERATIONS/LIST/" + base_path + "/" + item['name'])
+        purge_keys.append(base_path + "/OPERATIONS/LIST/" + base_path + "/" + item['name'] + "?RECURSIVE=TRUE")
+
+    # Purge all the keyvals in the container, with the proper tags (and for untagged items)
+    for item in keyvals:
+        param_path = base_path
+        param_path = param_path + "?KEY=%s" % (item['key'].upper())
+        purge_keys.append(param_path)
+        try:
+            purge_keys.append(param_path + "&TAG=" + item['tag'].upper())
+        except KeyError as e:
+            purge_keys.append(param_path + "&TAG=" + app.config['DEFAULT_TAG'])
+
+    app.logger.debug("PURGING KEYS: %s" % ("|".join(purge_keys)))
+    cache.delete_many(*purge_keys)
+    return True
 
 def post_process_containers(data, **kwargs):
     cid = kwargs['container_id']
@@ -135,7 +162,6 @@ def post_process_containers(data, **kwargs):
                True)
 
     return return_data
-
 
 def post_process_keyvals(data, **kwargs):
     cid = kwargs['container_id']

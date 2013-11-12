@@ -35,15 +35,17 @@ class Container(db.Model):
             str(self.parent_id))
 
     def dumptree(self, inner=False):
+        """
+        dump tree provides a recursive dictionary starting at the container which
+        this method is called on. inner should never be called by an external caller,
+        it's merely used to support recursion on this method
+        """
         values = { self.name: { } }
 
         if len(self.children.values()) > 0:
             for c in self.children.values():
                 values[self.name][c.name] = c.dumptree(inner=True)
-        # else:
-        #     values[self.name] = dict()
 
         if inner is False:
             return values
-        else:
-            return values[self.name]
+        return values[self.name]

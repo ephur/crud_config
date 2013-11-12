@@ -5,6 +5,8 @@ import config
 app = Flask(__name__)
 app.config.from_object(config)
 
+app.debug = app.config['DEBUG']
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqldb://%s:%s@%s:%s/%s?' % (
                                          app.config['DATABASE_USER'],
                                          app.config['DATABASE_PASS'],
