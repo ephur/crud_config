@@ -14,11 +14,13 @@ class Key(db.Model):
     id = db.Column(db.Integer, db.Sequence('key_id_seq'), primary_key=True)
     name = db.Column(db.Unicode(128), nullable=False, index=True)
     container_id = db.Column(db.Integer,
-                          db.ForeignKey("containers.id"),
+                          db.ForeignKey("containers.id", ondelete='CASCADE'),
                           nullable=False,
                           index=True)
     tag = db.Column(db.Unicode(128), nullable=False, index=True)
-    values = db.relationship("Value", backref="key")
+    values = db.relationship("Value",
+                             passive_deletes=True,
+                             backref="key")
     added = db.DateTime(timezone=True)
     updated = db.DateTime(timezone=True)
 

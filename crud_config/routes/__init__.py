@@ -7,12 +7,12 @@ import gets
 import puts
 import posts
 import deletes
+import purge
 
 
 # Need to do an auth lookup on any and all requests
 @app.before_request
 def before_request():
-    app.logger.debug(sorted(flask.request.args.iteritems()))
     try:
         auth = ("APIKEY", flask.request.headers['X-API-Auth'])
     except KeyError as e:

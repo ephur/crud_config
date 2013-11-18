@@ -9,7 +9,7 @@ class Value(db.Model):
     __tablename__ = "values"
 
     id = db.Column(db.Integer, db.Sequence('value_id_seq'), primary_key=True)
-    key_id = db.Column(db.Integer, db.ForeignKey('keys.id'),
+    key_id = db.Column(db.Integer, db.ForeignKey('keys.id', ondelete='CASCADE'),
                     nullable=False,
                     index=True)
     value = db.Column(db.Text, nullable=False)

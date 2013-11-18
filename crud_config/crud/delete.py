@@ -1,4 +1,12 @@
-def delete_key(self, container, name, tag=None):
+import flask
+from crud_config import app
+from crud_config import db
+from crud_config.models import *
+import sqlalchemy.orm.exc as sqlormerrors
+import crud_config.exceptions as ce
+import retrieve as ccget
+
+def delete_key(container, name, tag=None):
     """ Delete a key (and it's associated values)
 
     :param container: container to delete key from (required)
@@ -8,7 +16,7 @@ def delete_key(self, container, name, tag=None):
     """
     pass
 
-def delete_container(self, container, noop=True, confirm=False):
+def delete_container(container, confirm=False):
     """ Delete a container and all of the keys and values inside of it
 
     This is a descructive operation. It defaults to noop, when noop is
@@ -20,4 +28,7 @@ def delete_container(self, container, noop=True, confirm=False):
     :param confirm: if True allow delete to happen
                     (optional: default False)
     """
-    pass
+    c = ccget.get_container(container)
+    db.session.delete(c)
+    db.session.commit()
+    return True
