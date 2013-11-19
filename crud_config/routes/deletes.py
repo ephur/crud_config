@@ -79,7 +79,5 @@ def delete_process_containers(data, **kwargs):
             return_data.append("Can't delete %s, it doesn't exist!" % (killtainer) )
     return return_data
 
-
-
 def delete_process_keyvals(data, **kwargs):
     pass

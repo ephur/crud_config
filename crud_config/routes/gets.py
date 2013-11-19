@@ -39,7 +39,7 @@ def get_main(path):
                    debug="%d: %s" % (loops, cache_key)))
         app.logger.debug("%s is not cached, checked %d times" %
                          (cache_key, loops))
-        sleeptime = random() / 10
+        sleeptime = random() / 100
         sleep(sleeptime)
         # For other threads that might be requesting the same thing, announce
         # to the cache that we're processing this page, help to eliminate

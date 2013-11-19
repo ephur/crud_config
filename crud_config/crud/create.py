@@ -57,7 +57,10 @@ def add_keyval(container, key, value, tag=None):
         db.session.rollback()
         k = ccget.get_key(container, key, tag)
     # Add the value
-    v = add_value(k.id, value)
+    try:
+        v = add_value(k.id, value)
+    except ce.notUnique as e:
+        v = ccget.get_value(k.id)
     return (k, v)
 
 def add_value(key_id, raw_value):
@@ -67,26 +70,29 @@ def add_value(key_id, raw_value):
     :param key_id: ID of Key to associate value with (required)
     :param raw_value: The value to add to the key (required)
     """
+    added_vals = []
+    if type(raw_value) is not list:
+        raw_value = [str(raw_value).encode('utf-8')]
+    else:
+        raw_value = [x.encode('utf-8') for x in raw_value]
 
-    raw_value = raw_value.encode('utf-8')
-    try:
-        # Get a list of all the values, iterate through the list to check
-        # for duplicates, this is an expensive operation but the only way
-        # to check for dupes when values are stored encrypted
-        vs = ccget.get_value(key_id)
-        for v in vs:
-            if v.value == raw_value:
-                return v
-    except ce.noResult:
-        pass
+    for item in raw_value:
+        try:
+            # Get a list of all the values, iterate through the list to check
+            # for duplicates, this is an expensive operation but the only way
+            # to check for dupes when values are stored encrypted
+            vs = ccget.get_value(key_id)
+            for v in vs:
+                if v.value == item:
+                    raise ce.notUnique
+        except ce.noResult:
+            pass
 
-    v = Value(key_id, unicode(raw_value))
-    db.session.add(v)
-    db.session.commit()
-    # Transform the ORM Object to a dict
-    value = {"id": v.id, "key_id": v.key_id, "value": raw_value}
-
-    return v
+        v = Value(key_id, unicode(item))
+        db.session.add(v)
+        db.session.commit()
+        added_vals.append(v)
+    return added_vals
 
 
 def add_key(container, name, tag=None):

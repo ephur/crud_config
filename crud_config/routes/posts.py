@@ -145,6 +145,7 @@ def post_process_keyvals(data, **kwargs):
                                ccpost.add_keyval(cid, key, value, tag)))
 
     except TypeError as e:
+        raise
         return(error(
                400,
                "keyvals JSON should be a list of JSON dictionaries",
