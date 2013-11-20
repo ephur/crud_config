@@ -28,6 +28,7 @@ setup(
                       'Flask-SQLAlchemy',
                       'simplejson',
                       'SQLAlchemy',
-                      'MySQL-python'],
+                      'MySQL-python',
+                      'PyYAML'],
 
 )

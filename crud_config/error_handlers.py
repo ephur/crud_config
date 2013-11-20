@@ -57,9 +57,10 @@ def five_oh_oh(*args, **kwargs):
 
 # If a generic 500 is called, return a 500 with as little processing as
 # possible since it shouldn'tever come to this
-@app.errorhandler(500)
-def error_on_error():
-    return "{\"code\": 500, \"message\": [ \"INTERNAL SERVER ERROR\" ]}", 500
+# @app.errorhandler(500)
+# def error_on_error():
+#     raise
+#     return "{\"code\": 500, \"message\": [ \"INTERNAL SERVER ERROR\" ]}", 500
 
 
 # When the framework throws a 404 this will handle it, different than the
