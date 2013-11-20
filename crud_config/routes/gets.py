@@ -193,7 +193,12 @@ def get_list(path):
                                  path=cache_key
                                  )
             app.logger.debug("loading %s after %f seconds wait" % (cache_key, sleeptime))
-            container = ccget.get_container(path)
+            try:
+                container = ccget.get_container(path)
+            except ce.noResult as e:
+                return error(404,
+                             "container not found",
+                             container=path)
             if request_recursive is True:
                 cache.set(cache_key,
                           json.dumps(container.dumptree(max_recursion=max_recursion)),
