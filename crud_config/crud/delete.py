@@ -6,7 +6,7 @@ import sqlalchemy.orm.exc as sqlormerrors
 import crud_config.exceptions as ce
 import retrieve as ccget
 
-def delete_key(container, name, tag=None):
+def delete_key(container, name, value=None, tag=None):
     """ Delete a key (and it's associated values)
 
     :param container: container to delete key from (required)
@@ -14,7 +14,25 @@ def delete_key(container, name, tag=None):
     :param tag: match key with tag
                 (optional: default __class__.default_key)
     """
-    pass
+    k = ccget.get_key(container, name, tag=tag)
+    if value is None:
+        db.session.delete(k)
+        db.session.commit()
+        return True
+    check1 = len(k.values) == 1
+    check2 = k.values[0].value == value
+    if check1 and check2:
+        db.session.delete(k)
+        db.session.commit()
+        return True
+    else:
+        for a_val in k.values:
+            if a_val.value == value:
+                db.session.delete(a_val)
+                db.session.commit()
+                return True
+    return False
+
 
 def delete_container(container, confirm=False):
     """ Delete a container and all of the keys and values inside of it

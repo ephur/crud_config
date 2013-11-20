@@ -21,8 +21,11 @@ class Container(db.Model):
                        index=True)
     keys = db.relationship("Key",
                            backref='container',
+                           cascade='all, delete-orphan',
                            passive_deletes=True)
+
     children = db.relationship("Container",
+                            cascade='all, delete-orphan',
                             passive_deletes=True,
                             backref=db.backref('parent', remote_side=[id]),
                             collection_class=attribute_mapped_collection('name'))

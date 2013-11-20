@@ -40,12 +40,12 @@ def purge(path, params):
         except TypeError:
             name = item
         purge_keys.append(base_path + "/" + name)
-        purge_keys.append(base_path + "/operations/container/list" + base_path + "/" + name)
-        purge_keys.append(base_path + "/operations/container/list" + base_path + "/" + name + "?RECURSIVE=TRUE")
+        purge_keys.append(base_path + "/operations/container/list" + base_path + name)
+        purge_keys.append(base_path + "/operations/container/list" + base_path + name + "?RECURSIVE=TRUE")
         for i in range(app.config['TREE_MAX_RECURSION']):
-            purge_keys.append(base_path + "/operations/container/list" + base_path + "/" +
+            purge_keys.append(base_path + "/operations/container/list" + base_path +
                               name + "?DEPTH=%s" %(str(i)))
-            purge_keys.append(base_path + "/operations/container/list" + base_path + "/" +
+            purge_keys.append(base_path + "/operations/container/list" + base_path +
                               name + "?DEPTH=%s&RECURSIVE=TRUE" %(str(i)))
 
 

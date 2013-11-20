@@ -2,7 +2,6 @@ from crud_config import db
 from crud_config.models import *
 import datetime
 
-
 class Key(db.Model):
     """
     A key is tagged, and lives inside of a container. A key is a container
@@ -19,8 +18,9 @@ class Key(db.Model):
                           index=True)
     tag = db.Column(db.Unicode(128), nullable=False, index=True)
     values = db.relationship("Value",
+                             cascade='all, delete-orphan',
                              passive_deletes=True,
-                             backref="key")
+                             backref=db.backref('key', remote_side=[id]))
     added = db.DateTime(timezone=True)
     updated = db.DateTime(timezone=True)
 

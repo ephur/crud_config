@@ -80,4 +80,28 @@ def delete_process_containers(data, **kwargs):
     return return_data
 
 def delete_process_keyvals(data, **kwargs):
-    pass
+    path = kwargs['path']
+    return_data = kwargs['processed_so_far']
+    for keyval in data:
+        try:
+            key = keyval['key']
+        except KeyError:
+            return_data.append("must provide a key to delete (got %s)" % str(keyval))
+            continue
+
+        try:
+            tag = keyval['tag']
+        except KeyError as e:
+            tag = app.config['DEFAULT_TAG']
+
+        try:
+            val = keyval['value']
+        except:
+            val = None
+        try:
+            ccdelete.delete_key(path, key, value=val, tag=tag)
+            return_data.append("Deleted %s in %s with tag %s" % (key, path, tag))
+        except ce.noResult as e:
+            return_data.append("Can't delete %s in %s with tag %s, can't find container or value"  %(key, path, tag))
+
+    return return_data
