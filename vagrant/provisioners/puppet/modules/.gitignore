@@ -1,0 +1,5 @@
+# Hack to ignore items in this directory since librarian puppet manages this
+# directory.
+
+*
+!.gitignore
