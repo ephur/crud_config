@@ -59,3 +59,10 @@ package { 'pylibmc':
   ensure      => present,
   provider    => pip,
 }
+
+package { 'requests':
+  ensure      => installed,
+  provider    => pip,
+}
+
+package { 'memcached': ensure => present }
