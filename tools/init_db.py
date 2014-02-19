@@ -10,7 +10,7 @@ print "hi"
 db.create_all()
 print "yo"
 container = Container.query.filter_by(name=unicode('root')).first()
-print container
+#print container
 if container is None:
   row = Container(unicode('root'), unicode('The GLOBAL/ROOT container'), None);
   db.session.add(row)
