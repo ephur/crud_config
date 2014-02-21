@@ -28,6 +28,8 @@ DATABASE_USER = "cc"
 DATABASE_PASS = "cc_test"
 # Database to use
 DATABASE_DB = "crud_config"
+# Prevent runaway loops
+TREE_MAX_RECURSION = 10
 
 
 """
