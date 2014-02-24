@@ -105,6 +105,25 @@ A key is optional in get operations, but does change the behavior of the return.
 * get /region/cell/machine[?key=y&tag=x] (get [a] config value[s] from a machine)
 * get /region/cell[?list_containers] (list the child containers [inside of /region/cell in this example])
 
+### Retrieve Containers
+
+### get requests
+Get the list of containers at the root
+```
+get /operatoins/container/list/[container]
+```
+
+Get list of containers in a container
+```
+* get /operations/container/list/path/to[container]
+```
+
+Get containers recusively
+```
+get /operatoins/container/list/[container]\?recursive\=true
+```
+
+
 
 ## UPDATE: update existing configuration values
 Update configuration values. You can not update a value that does not exist. A 404 will be returned if updating a value that does not exist. It is optional to provide a tag, if a tag is not provided it will be assumed to be a global value. If a tag is provided, that tag must exist to update.
