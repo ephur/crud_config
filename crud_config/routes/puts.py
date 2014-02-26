@@ -64,7 +64,6 @@ def put_main(path):
             return return_data
 
     # Time to clean up the caches...
-    #post_invalidate_cache(path, request_data)
     purge(path, request_data)
     return json.dumps({"results": return_data})
 
@@ -75,7 +74,7 @@ def put_process_keyvals(data, **kwargs):
     return_data = kwargs['processed_so_far']
     for item in data:
         try:
-            k = item['key']
+            k = item['key'].lower()
             v = item['value']
         except KeyError as e:
             return(error(

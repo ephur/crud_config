@@ -52,18 +52,21 @@ def get_main(path):
                       timeout=app.config['CACHE_LOCKING_SECONDS'])
             # Set values for the request
             request_tag = app.config['DEFAULT_TAG']
+            request_return = "VALUES"
             request_key = None
             for (k, v) in flask.request.args.iteritems():
                 if k.upper() == "TAG":
                     request_tag = v.upper()
                 elif k.upper() == "KEY":
-                    request_key = v.upper()
+                    request_key = v.lower()
+                elif k.upper() == "RETURN":
+                    request_return = v.upper()
                 else:
                     # Clean up known query string params, avoid cachebusting
                     # and make clearing the cache possible for posts/puts
                     return(error(
                            400,
-                           "client error"
+                           "client error",
                            "invalid query string parameters",
                            key=k,
                            value=v,
@@ -72,6 +75,15 @@ def get_main(path):
             app.logger.debug(
                 "I'm doing the loading after a sleep of %f seconds" %
                 (sleeptime))
+
+            # Can't request a key in conjuction with some request_return types
+            if request_key is not None and request_return is not "VALUES":
+                return(error(
+                       400,
+                       "client error",
+                       "paramater conflict",
+                       message="%s can't be return value when requesting a single key" %(request_return),
+                       ))
 
             if request_key is not None:
                 # A single Key is requested
@@ -101,31 +113,57 @@ def get_main(path):
                     return error(404, "container not found", requested_container=path)
                 all_containers = [container.id]
                 all_values = dict()
+                all_child_containers = list()
+                if request_return == "ALL" or request_return == "CONTAINERS":
+                    app.logger.debug(request_return)
+                    for child_container in container.children:
+                        app.logger.debug(dir(child_container))
+                        all_child_containers.append(child_container)
+                        app.logger.debug(all_child_containers)
                 while container.parent is not None:
                     container = container.parent
                     if container is not None:
                         all_containers.append(container.id)
-                for container in reversed(all_containers):
-                    c = ccget.get_container(container)
-                    for key in c.keys:
-                        if ((key.tag != request_tag and
-                             key.tag != app.config['DEFAULT_TAG'])):
-                            continue
-                        try:
-                            if ((all_values[key.name]['tag'] !=
-                                 app.config['DEFAULT_TAG'])):
+                if request_return == "ALL" or request_return =="VALUES":
+                    for container in reversed(all_containers):
+                        c = ccget.get_container(container)
+                        for key in c.keys:
+                            if ((key.tag != request_tag and
+                                 key.tag != app.config['DEFAULT_TAG'])):
                                 continue
-                        except KeyError:
-                            pass
-                        all_values[key.name] = {'values': list(),
-                                                'tag': key.tag,
-                                                'id': key.id}
-                        for value in key.values:
-                            all_values[key.name]['values'].append(
-                                {'id': value.id, 'value': value.value })
+                            try:
+                                if ((all_values[key.name]['tag'] !=
+                                     app.config['DEFAULT_TAG'])):
+                                    continue
+                            except KeyError:
+                                pass
+                            all_values[key.name] = {'values': list(),
+                                                    'tag': key.tag,
+                                                    'id': key.id}
+                            for value in key.values:
+                                all_values[key.name]['values'].append(
+                                    {'id': value.id, 'value': value.value })
+                if request_return == "ALL":
+                    return_hash = { "containers": all_child_containers, 
+                                    "key_values": all_values }
+
+                elif request_return == "CONTAINERS":
+                    return_hash = all_child_containers
+
+                elif request_return == "VALUES":
+                    return_hash = all_values
+
+                else:
+                    return(error(400,
+                                 "client_error",
+                                 "invalid paramater value",
+                                 key=k,
+                                 value=v,
+                                 path=cache_key))
+
 
                 cache.set(cache_key,
-                          json.dumps(all_values),
+                          json.dumps(return_hash),
                           timeout=app.config['CACHE_DEFAULT_AGE_SECONDS'])
 
         cache.delete("loading-" + cache_key)

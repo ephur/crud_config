@@ -64,7 +64,6 @@ def post_main(path):
             return return_data
 
     # Time to clean up the caches...
-    #post_invalidate_cache(path, request_data)
     purge(path, request_data)
     return json.dumps({"results": return_data})
 
@@ -116,7 +115,7 @@ def post_process_keyvals(data, **kwargs):
     try:
         for keyval in data:
             try:
-                key = keyval['key']
+                key = keyval['key'].lower()
             except TypeError as e:
                 return(error(
                        400,
