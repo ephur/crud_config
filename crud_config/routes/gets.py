@@ -111,20 +111,29 @@ def get_main(path):
                     container = ccget.get_container(path)
                 except ce.noResult:
                     return error(404, "container not found", requested_container=path)
-                all_containers = [container.id]
-                all_values = dict()
-                all_child_containers = list()
+
+                # Process a container list
                 if request_return == "ALL" or request_return == "CONTAINERS":
+                    child_containers = list()
+                    all_child_containers = dict()
                     app.logger.debug(request_return)
                     for child_container in container.children:
-                        app.logger.debug(dir(child_container))
-                        all_child_containers.append(child_container)
+                        child_containers.append(path + "/" + child_container)
                         app.logger.debug(all_child_containers)
-                while container.parent is not None:
-                    container = container.parent
-                    if container is not None:
-                        all_containers.append(container.id)
+                    for child_container in child_containers:
+                        c = ccget.get_container(child_container)
+                        all_child_containers[c.name] = { "description": c.description,
+                                                         "id": c.id }
+
+                # Process a value list
                 if request_return == "ALL" or request_return =="VALUES":
+                    all_containers = [container.id]
+                    all_values = dict()
+                    while container.parent is not None:
+                        container = container.parent
+                        if container is not None:
+                            all_containers.append(container.id)
+
                     for container in reversed(all_containers):
                         c = ccget.get_container(container)
                         for key in c.keys:

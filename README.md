@@ -106,9 +106,9 @@ A key is optional in get operations, but does change the behavior of the return.
 
 Parameters:
 return (get /container?return=ALL)
-* VALUES - Return  a list of values (DEFAULT)
+* VALUES - Return  a dictionary of keys and values (DEFAULT)
 * ALL - Return a dictionary of both keyvalues and containers
-* CONTAINERS - Return a list of containers
+* CONTAINERS - Return a dictionary of containers & info about containers
 
 
 ### Retrieve Containers
