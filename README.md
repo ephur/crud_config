@@ -103,14 +103,21 @@ A key is optional in get operations, but does change the behavior of the return.
 * get /region[?key=y&tag=x] (get [a] config value[s] from a region)
 * get /region/cell[?key=y&tag=x] (get [a] config value[s] from a cell)
 * get /region/cell/machine[?key=y&tag=x] (get [a] config value[s] from a machine)
-* get /region/cell[?list_containers] (list the child containers [inside of /region/cell in this example])
+
+Parameters:
+return (get /container?return=ALL)
+* VALUES - Return  a list of values (DEFAULT)
+* ALL - Return a dictionary of both keyvalues and containers
+* CONTAINERS - Return a list of containers
+
 
 ### Retrieve Containers
 
 ### get requests
 Get the list of containers at the root
 ```
-get /operatoins/container/list/[container]
+get /[container]?return=[all,containers]
+get /operations/container/list/[container]
 ```
 
 Get list of containers in a container
