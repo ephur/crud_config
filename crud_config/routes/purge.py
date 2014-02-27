@@ -7,6 +7,12 @@ def purge(path, params):
     This is to invalidate cache items that are submitted.
     """
     cache = MemcachedCache(app.config['MEMCACHE_SERVERS'].split(","))
+    # HORRIBLE HORRIBLE HORRIBLE
+    # @todo the cache clearing needs reworked for a few reasons,
+    # currently, only the entire cache can be purged, beacuse of the cache
+    # key used, on update, the entire cache will be removed.
+    cache.clear()
+    return True
 
     # Each of the containers so the top level containers can be purged
     path_parts = path.split("/")
@@ -40,6 +46,7 @@ def purge(path, params):
         except TypeError:
             name = item
         purge_keys.append(base_path + "/" + name)
+        purge_keys.append(base_path + "/" + name + "?RETURN=ALL")
         purge_keys.append(base_path + "/operations/container/list" + base_path + name)
         purge_keys.append(base_path + "/operations/container/list" + base_path + name + "?RECURSIVE=TRUE")
         for i in range(app.config['TREE_MAX_RECURSION']):
