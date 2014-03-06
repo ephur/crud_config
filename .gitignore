@@ -22,3 +22,4 @@ crud_config/config.py
 vagrant/provisioners/puppet/Puppetfile.lock
 vagrant/provisioners/puppet/.tmp
 vagrant/provisioners/puppet/.librarian
+alembic.ini

@@ -65,4 +65,9 @@ package { 'requests':
   provider    => pip,
 }
 
+package {'alembic':
+	ensure		=> installed,
+	provider	=> pip,
+}	
+
 package { 'memcached': ensure => present }
