@@ -23,4 +23,4 @@ vagrant/provisioners/puppet/Puppetfile.lock
 vagrant/provisioners/puppet/.tmp
 vagrant/provisioners/puppet/.librarian
 crud_config/util/config.py
-
+.idea/

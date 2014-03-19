@@ -212,6 +212,10 @@ def get_list(path):
                       timeout=app.config['CACHE_LOCKING_SECONDS'])
             request_recursive = False
             max_recursion = int(app.config['TREE_MAX_RECURSION'])
+
+            #### Mike
+            request_key = None
+            request_val = None
             for (k, v) in flask.request.args.iteritems():
                 if k.upper() == "DEPTH":
                     try:
@@ -231,6 +235,13 @@ def get_list(path):
                                      "client error",
                                      "invalid querystring",
                                      recursion_request_value=v)
+
+                elif k.upper() == "KEY":
+                    request_key = v.lower()
+
+                elif k.upper() == "VALUE":
+                    request_val = v.lower()
+
                 else:
                     return error(400,
                                  "client error",
@@ -246,10 +257,56 @@ def get_list(path):
                 return error(404,
                              "container not found",
                              container=path)
-            if request_recursive is True:
+
+            if request_recursive is True and request_key is None:
+                app.logger.debug("recursive with NO key")
                 cache.set(cache_key,
                           json.dumps(container.dumptree(max_recursion=max_recursion)),
                           timeout=app.config['CACHE_DEFAULT_AGE_SECONDS'])
+
+            elif request_recursive is True and request_key is not None and request_val is None:
+                app.logger.debug("recursive with key")
+                cache.set(cache_key,
+                          json.dumps(container.dumptree_with_key(max_recursion=max_recursion, key=request_key)),
+                          timeout=app.config['CACHE_DEFAULT_AGE_SECONDS'])
+
+            elif request_recursive is True and request_key is not None and request_val is not None:
+                app.logger.debug("recursive with key and val")
+                all_values = dict()
+                return_hash = []
+                ##cache.set(cache_key,
+                ##          json.dumps(container.dumptree_with_key_val(max_recursion=max_recursion, key=request_key, r_val=request_val)),
+                ##          timeout=app.config['CACHE_DEFAULT_AGE_SECONDS'])
+                a = container.dumptree_with_key_val(max_recursion=max_recursion, key=request_key, r_val=request_val)
+                for container in a:
+                    c = ccget.get_container(container)
+                    for key in c.keys:
+                        # if ((key.tag != request_tag and
+                        #      key.tag != app.config['DEFAULT_TAG'])):
+                        #     continue
+                        # try:
+                        #     if ((all_values[key.name]['tag'] !=
+                        #          app.config['DEFAULT_TAG'])):
+                        #         continue
+                        # except KeyError:
+                        #     pass
+                        all_values[key.name] = {'values': list(),
+                                                'tag': key.tag,
+                                                'id': key.id}
+                        for value in key.values:
+                            all_values[key.name]['values'].append(
+                                {'id': value.id, 'value': value.value })
+
+
+                    return_hash.append(all_values)
+
+
+                cache.set(cache_key,
+                          json.dumps(return_hash),
+                          timeout=app.config['CACHE_DEFAULT_AGE_SECONDS'])
+
+
+
             else:
                 cache.set(cache_key,
                           json.dumps([x for x in container.children.keys()]),

@@ -59,3 +59,48 @@ class Container(db.Model):
         if recursed == 0:
             return values
         return values[self.name]
+
+    def dumptree_with_key(self, max_recursion=10, recursed=0, key=None):
+        """
+        dump tree provides a recursive dictionary starting at the container which
+        this method is called on. inner should never be called by an external caller,
+        it's merely used to support recursion on this method
+        """
+        values = []
+        if recursed >= max_recursion:
+            return []
+
+        for c in self.children.values():
+            for i in c.keys:
+                if key == i.name:
+                    #print i.values[0].value
+                    values.append(c.name)
+
+            test = c.dumptree_with_key(recursed=recursed + 1, max_recursion=max_recursion, key=key)
+            for val in test:
+                values.append(val)
+
+        return values
+
+    def dumptree_with_key_val(self, max_recursion=10, recursed=0, key=None, r_val=None):
+        """
+        dump tree provides a recursive dictionary starting at the container which
+        this method is called on. inner should never be called by an external caller,
+        it's merely used to support recursion on this method
+        """
+        values = []
+        if recursed >= max_recursion:
+            return []
+
+        for c in self.children.values():
+            for i in c.keys:
+                if key == i.name:
+                    if r_val == i.values[0].value:
+                        values.append(c.id)
+
+            test = c.dumptree_with_key_val(recursed=recursed + 1, max_recursion=max_recursion, key=key, r_val=r_val)
+            for val in test:
+                values.append(val)
+
+        return values
+

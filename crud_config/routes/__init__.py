@@ -74,3 +74,5 @@ def put_copytag():
 @app.route("/operations/cache/clear", methods=['GET'])
 def clear_cache():
     return gets.get_clear()
+
+
