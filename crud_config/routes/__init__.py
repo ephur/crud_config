@@ -68,7 +68,6 @@ def get_list(path):
 def put_copytag():
     return puts.copytag()
 
-
 # When running in debug mode, allow a caller to GET /clear
 # in order to empty the cache.
 @app.route("/operations/cache/clear", methods=['GET'])
@@ -79,6 +78,3 @@ def clear_cache():
 @app.route("/operations/container/content/<path:path>", methods=['GET'])
 def get_content(path):
     return gets.get_content(path)
-
-
-

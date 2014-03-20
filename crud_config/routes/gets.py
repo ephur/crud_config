@@ -213,7 +213,6 @@ def get_list(path):
             request_recursive = False
             max_recursion = int(app.config['TREE_MAX_RECURSION'])
 
-            #### Mike
             request_key = None
             request_val = None
             for (k, v) in flask.request.args.iteritems():
@@ -289,12 +288,9 @@ def get_list(path):
 
 def get_content(path):
     """
-    This will return a list of all containers inside of another
-    container
+    This will return a dict of the content in containers matching key or key and value provided
+    in arguments.
 
-    Setting ?recursive=true will get all the child containers,
-    until there are no more children and provide a full container
-    tree
     """
     cache_key = "/operations/container/content/" + path + "?" + "&".join(
         ["%s=%s" % (k.upper(), v.upper()) for k, v in sorted(
@@ -321,21 +317,9 @@ def get_content(path):
             request_recursive = False
             max_recursion = int(app.config['TREE_MAX_RECURSION'])
 
-            #### Mike
             request_key = None
             request_val = None
             for (k, v) in flask.request.args.iteritems():
-
-
-                # if k.upper() == "RECURSIVE":
-                #     try:
-                #         request_recursive = crud_config.util.toBool(v)
-                #     except ValueError as e:
-                #         return error(400,
-                #                      "client error",
-                #                      "invalid querystring",
-                #                      recursion_request_value=v)
-
                 if k.upper() == "KEY":
                     request_key = v.lower()
 
@@ -383,7 +367,6 @@ def get_content(path):
                           json.dumps(return_hash),
                           timeout=app.config['CACHE_DEFAULT_AGE_SECONDS'])
 
-
             elif request_key is not None and request_val is not None:
                 all_values = dict()
                 return_hash = dict()
@@ -398,7 +381,6 @@ def get_content(path):
                                 {'value': value.value })
 
                     return_hash[c.name]= all_values
-
 
                 cache.set(cache_key,
                           json.dumps(return_hash),

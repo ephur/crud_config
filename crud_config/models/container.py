@@ -62,8 +62,9 @@ class Container(db.Model):
 
     def dumptree_with_key(self, max_recursion=10, recursed=0, key=None, container_id=False):
         """
-        dump tree provides a recursive dictionary starting at the container which
-        this method is called on. inner should never be called by an external caller,
+        dump tree with key searches a dictionary recursively and returns all containers with
+        the provided key, starting at the container which
+        this method is called on. Inner should never be called by an external caller,
         it's merely used to support recursion on this method
         """
         values = []
@@ -86,8 +87,9 @@ class Container(db.Model):
 
     def dumptree_with_key_val(self, max_recursion=10, recursed=0, key=None, r_val=None, container_id=False):
         """
-        dump tree provides a recursive dictionary starting at the container which
-        this method is called on. inner should never be called by an external caller,
+        dump tree with key val searches a dictionary recursively and returns all containers with
+        the matching key value pair provided. The search starts at the container which
+        this method is called on. Inner should never be called by an external caller,
         it's merely used to support recursion on this method
         """
         values = []
