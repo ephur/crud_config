@@ -75,4 +75,10 @@ def put_copytag():
 def clear_cache():
     return gets.get_clear()
 
+@app.route("/operations/container/content/", methods=['GET'], defaults={'path': ''})
+@app.route("/operations/container/content/<path:path>", methods=['GET'])
+def get_content(path):
+    return gets.get_content(path)
+
+
 
