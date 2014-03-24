@@ -14,10 +14,10 @@ import purge
 @app.before_request
 def before_request():
     try:
-        auth = ("APIKEY", flask.request.headers['X-API-Auth'])
+        auth = ("APIKEY", flask.request.headers['X-API-Auth'], flask.request)
     except KeyError as e:
         try:
-            auth = ("LDAP", flask.request.headers['X-SSO-Auth'])
+            auth = ("LDAP", flask.request.headers['X-SSO-Auth'], flask.request)
         except KeyError as e:
             return(error(
                    403,

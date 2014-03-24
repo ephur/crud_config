@@ -13,14 +13,17 @@ class ApiKey(db.Model):
     api_key = db.Column(db.UnicodeText, nullable=False)
     valid = db.Column(db.Boolean)
     owner = db.Column(db.Unicode(128), nullable=True)
+    write = db.Column(db.Boolean, default=False, server_default='0')
 
     def __init__(self, api_key, owner, valid=True):
         self.api_key = unicode(api_key)
         self.owner = unicode(owner)
         self.valid = int(valid)
+        self.write = int(write)
 
     def __repr__(self):
-        return "<ApiKey('%s','%s','%d')>" % (
+        return "<ApiKey('%s','%s', '%d', %d')>" % (
             self.api_key,
             self.owner,
-            self.valid)
+            self.valid,
+            self.write)
