@@ -359,8 +359,8 @@ def get_content(path):
                         all_values[key.name] = {'values': list()}
 
                         for value in key.values:
-                            all_values[key.name]['values'].append(
-                                {'value': value.value })
+                            #all_values[key.name]['values'].append({'value': value.value})
+                            all_values[key.name]['values'].append(value.value)
 
                     return_hash[c.name]= all_values
 
@@ -380,7 +380,8 @@ def get_content(path):
 
                         for value in key.values:
                             app.logger.debug(key.values)
-                            all_values[key.name]['values'].append({'value': value.value})
+                            #all_values[key.name]['values'].append({'value': value.value})
+                            all_values[key.name]['values'].append(value.value)
 
                     return_hash[c.name]=all_values
 

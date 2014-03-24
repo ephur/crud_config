@@ -27,3 +27,4 @@ crud_config/util/core.py
 crud_config/util/core_import.py
 crud_config/util/jsonloader.py
 .idea/
+run.py
