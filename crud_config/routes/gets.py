@@ -379,7 +379,7 @@ def get_content(path):
                         all_values[key.name] = {'values': list()}
 
                         for value in key.values:
-                            app.logger.debug(key.values)
+                            #app.logger.debug(key.values)
                             #all_values[key.name]['values'].append({'value': value.value})
                             all_values[key.name]['values'].append(value.value)
 
