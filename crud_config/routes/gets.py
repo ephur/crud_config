@@ -349,17 +349,17 @@ def get_content(path):
                              container=path)
 
             if request_key is not None and request_val is None:
-                all_values = dict()
+                #app.logger.debug("Content with no key")
                 return_hash = dict()
                 a = container.dumptree_with_key(max_recursion=max_recursion, key=request_key, container_id=True)
                 for container in a:
                     c = ccget.get_container(container)
+                    all_values = dict()
                     for key in c.keys:
                         all_values[key.name] = {'values': list()}
 
                         for value in key.values:
-                            all_values[key.name]['values'].append(
-                                {'value': value.value })
+                            all_values[key.name]['values'].append(value.value)
 
                     return_hash[c.name]= all_values
 
@@ -368,26 +368,27 @@ def get_content(path):
                           timeout=app.config['CACHE_DEFAULT_AGE_SECONDS'])
 
             elif request_key is not None and request_val is not None:
-                all_values = dict()
+                #app.logger.debug("Content with given key")
                 return_hash = dict()
                 a = container.dumptree_with_key_val(max_recursion=max_recursion, key=request_key, r_val=request_val, container_id=True)
                 for container in a:
                     c = ccget.get_container(container)
+                    all_values = dict()
                     for key in c.keys:
                         all_values[key.name] = {'values': list()}
 
                         for value in key.values:
-                            all_values[key.name]['values'].append(
-                                {'value': value.value })
+                            all_values[key.name]['values'].append(value.value)
 
-                    return_hash[c.name]= all_values
+                    return_hash[c.name]=all_values
 
                 cache.set(cache_key,
                           json.dumps(return_hash),
                           timeout=app.config['CACHE_DEFAULT_AGE_SECONDS'])
 
-            ## Shouldn't get here fix or error
+            ## Shouldn't get here TODO fix or error
             else:
+                app.logger.debug("Should not get here!")
                 cache.set(cache_key,
                           json.dumps([x for x in container.children.keys()]),
                           timeout=app.config['CACHE_DEFAULT_AGE_SECONDS'])
