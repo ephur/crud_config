@@ -349,7 +349,7 @@ def get_content(path):
                              container=path)
 
             if request_key is not None and request_val is None:
-                #app.logger.debug("No key")
+                #app.logger.debug("Content with no key")
                 return_hash = dict()
                 a = container.dumptree_with_key(max_recursion=max_recursion, key=request_key, container_id=True)
                 for container in a:
@@ -359,7 +359,6 @@ def get_content(path):
                         all_values[key.name] = {'values': list()}
 
                         for value in key.values:
-                            #all_values[key.name]['values'].append({'value': value.value})
                             all_values[key.name]['values'].append(value.value)
 
                     return_hash[c.name]= all_values
@@ -369,7 +368,7 @@ def get_content(path):
                           timeout=app.config['CACHE_DEFAULT_AGE_SECONDS'])
 
             elif request_key is not None and request_val is not None:
-                #app.logger.debug("Given key")
+                #app.logger.debug("Content with given key")
                 return_hash = dict()
                 a = container.dumptree_with_key_val(max_recursion=max_recursion, key=request_key, r_val=request_val, container_id=True)
                 for container in a:
@@ -379,8 +378,6 @@ def get_content(path):
                         all_values[key.name] = {'values': list()}
 
                         for value in key.values:
-                            #app.logger.debug(key.values)
-                            #all_values[key.name]['values'].append({'value': value.value})
                             all_values[key.name]['values'].append(value.value)
 
                     return_hash[c.name]=all_values
@@ -389,7 +386,7 @@ def get_content(path):
                           json.dumps(return_hash),
                           timeout=app.config['CACHE_DEFAULT_AGE_SECONDS'])
 
-            ## Shouldn't get here fix or error
+            ## Shouldn't get here TODO fix or error
             else:
                 app.logger.debug("Should not get here!")
                 cache.set(cache_key,
