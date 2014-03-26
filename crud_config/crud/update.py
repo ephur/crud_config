@@ -28,8 +28,8 @@ def update_keyval(container_path, key, value, tag=None):
     """
     # container = ccget.get_container(container_path)
     key = ccget.get_key(container_path, key, tag)
-    if type(value) is str:
-        v = [value.encode('utf-8')]
+    if type(value) is not list:
+        v = [str(value).encode('utf-8')]
     else:
         v = [x.encode('utf-8') for x in value]
 
