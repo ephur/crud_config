@@ -122,19 +122,17 @@ get /operations/container/list/[container]
 
 Get list of containers in a container
 ```
-* get /operations/container/list/path/to[container]
+get /operations/container/list/path/to[container]
 ```
 
-Get containers recusively
+Get containers recursively
 ```
-get /operatoins/container/list/[container]\?recursive\=true
+get /operations/container/list/[container]\?recursive\=true
 ```
-
 
 ### Search & Retrieve Container Contents
 
-## get requests
-
+### get requests
 Return a dictionary of all nested containers and their content, holding a specified key.
 ```
 get /operations/container/content/[container to search]?key=X
