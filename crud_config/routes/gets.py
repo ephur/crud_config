@@ -314,7 +314,6 @@ def get_content(path):
 
             cache.set("loading-" + cache_key, "True",
                       timeout=app.config['CACHE_LOCKING_SECONDS'])
-            request_recursive = False
             max_recursion = int(app.config['TREE_MAX_RECURSION'])
 
             request_key = None
@@ -356,10 +355,10 @@ def get_content(path):
                     c = ccget.get_container(container)
                     all_values = dict()
                     for key in c.keys:
-                        all_values[key.name] = {'values': list()}
+                        all_values[key.name] = list()
 
                         for value in key.values:
-                            all_values[key.name]['values'].append(value.value)
+                            all_values[key.name].append(value.value)
 
                     return_hash[c.name]= all_values
 
@@ -375,10 +374,10 @@ def get_content(path):
                     c = ccget.get_container(container)
                     all_values = dict()
                     for key in c.keys:
-                        all_values[key.name] = {'values': list()}
+                        all_values[key.name] = list()
 
                         for value in key.values:
-                            all_values[key.name]['values'].append(value.value)
+                            all_values[key.name].append(value.value)
 
                     return_hash[c.name]=all_values
 
