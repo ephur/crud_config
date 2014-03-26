@@ -1,4 +1,4 @@
-ALPHA: The things don't work! 
+BETA: Some things don't work!
 ====
 
 # Crud Config
@@ -131,6 +131,19 @@ get /operatoins/container/list/[container]\?recursive\=true
 ```
 
 
+### Search & Retrieve Container Contents
+
+## get requests
+
+Return a dictionary of all nested containers and their content, holding a specified key.
+```
+get /operations/container/content/[container to search]?key=X
+```
+
+Return a dictionary of all nested containers and their content, holding a specified key value pair.
+```
+get /operations/container/content/[container to search]?key=X&value=Y
+```
 
 ## UPDATE: update existing configuration values
 Update configuration values. You can not update a value that does not exist. A 404 will be returned if updating a value that does not exist. It is optional to provide a tag, if a tag is not provided it will be assumed to be a global value. If a tag is provided, that tag must exist to update.
@@ -144,19 +157,19 @@ Update configuration values. You can not update a value that does not exist. A 4
 * put / (update one more more keys at the global level)
 
 ``
-{[{"key": "value", "tag": "value"}, {"key2": "value2", "tag": "value2" }, [..]}
+{"keyvals": [{ "key":"key_name", "value":"value", "tag":"value2"}, { "key":"key2_name", "value":"value2", "tag":"value2"} ]}
 ``
 
 * put /region (update one more more keys, at this level of the hierarchy)
 
 ``
-{[{"key": "value", "tag": "value"}, {"key2": "value2", "tag": "value2" }, [..]}
+{"keyvals": [{ "key":"key_name", "value":"value", "tag":"value2"}, { "key":"key2_name", "value":"value2", "tag":"value2"} ]}
 ``
 
 * put /region/cell (update one more more keys, at this level of the hierarchy)
 
 ``
-{[{"key": "value", "tag": "value"}, {"key2": "value2", "tag": "value2" }, [..]}
+{"keyvals": [{ "key":"key_name", "value":"value", "tag":"value2"}, { "key":"key2_name", "value":"value2", "tag":"value2"} ]}
 ``
 
 ## DELETE OPERATIONS
