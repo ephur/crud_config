@@ -130,11 +130,9 @@ Get containers recusively
 get /operatoins/container/list/[container]\?recursive\=true
 ```
 
-
 ### Search & Retrieve Container Contents
 
-## get requests
-
+### get requests
 Return a dictionary of all nested containers and their content, holding a specified key.
 ```
 get /operations/container/content/[container to search]?key=X
