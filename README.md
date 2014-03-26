@@ -125,9 +125,9 @@ Get list of containers in a container
 * get /operations/container/list/path/to[container]
 ```
 
-Get containers recusively
+Get containers recursively
 ```
-get /operatoins/container/list/[container]\?recursive\=true
+get /operations/container/list/[container]\?recursive\=true
 ```
 
 ### Search & Retrieve Container Contents
