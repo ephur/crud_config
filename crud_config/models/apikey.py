@@ -15,7 +15,7 @@ class ApiKey(db.Model):
     owner = db.Column(db.Unicode(128), nullable=True)
     write = db.Column(db.Boolean, default=False, server_default='0')
 
-    def __init__(self, api_key, owner, valid=True):
+    def __init__(self, api_key, owner, valid=True, write=False):
         self.api_key = unicode(api_key)
         self.owner = unicode(owner)
         self.valid = int(valid)

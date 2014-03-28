@@ -7,10 +7,10 @@ class CacheContainers(db.Model):
     """
 
     __tablename__ = "cachecontainers"
-
+    id = db.Column(db.Integer, primary_key=True)
     cache_id = db.Column(db.String(128),
                          db.ForeignKey("cachereference.cache_id", ondelete='CASCADE'),
-                         nullable=False, index=True, primary_key=True)
+                         nullable=False, index=True)
     container_id = db.Column(db.Integer(), nullable=True, index=True)
     container_name = db.Column(db.Unicode(128), nullable=True, index=True)
     order = db.Column(db.Integer(32), nullable=True)

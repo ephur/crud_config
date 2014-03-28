@@ -7,10 +7,10 @@ class CacheValues(db.Model):
     """
 
     __tablename__ = "cachevalues"
-
+    id = db.Column(db.Integer, primary_key=True)
     cache_id = db.Column(db.String(128),
                          db.ForeignKey("cachereference.cache_id", ondelete='CASCADE'),
-                         nullable=False, index=True, primary_key=True)
+                         nullable=False, index=True)
     value_id = db.Column(db.Integer(), nullable=True, index=True)
     value_name = db.Column(db.Unicode(128), nullable=True, index=True)
 

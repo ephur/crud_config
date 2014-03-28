@@ -1,9 +1,10 @@
 from crud_config import app
 from crud_config import db
+from crud_config.models.cachereference import CacheReference
 from werkzeug.contrib.cache import MemcachedCache
-import uuid
+import hashlib
 
-def getkey(**kwargs):
+def getkey(path, params, **kwargs):
     """
     generate a cache key based on the arguments
 
@@ -12,10 +13,59 @@ def getkey(**kwargs):
         (boolean) data; URI data
     """
 
-    # Step 1: Determine if the cache key is for a container tree, or page view
-    # Step 2: Determine if a value can have a simple cache value, or needs to go the DB
-    # Step 3: Determine if cached values are already in the DB, return the value
+    simple=True
+    app.logger.debug("Generating cache key for path --- params \nPath: %s\n/Params: %s" % (path, params))
+    cache_params = dict()
+    cache_params['KEY'] = list()
+    cache_params['TAG'] = list()
+    cache_params['CONTAINERS'] = list ()
 
+    for item, value in params.iteritems():
+        app.logger.debug("%s:%s" % (item, value))
+        if item in ["KEY", "SEARCHKEY"]:
+            cache_params[item].append({ "name": value })
+            simple = False
+        if item in ["TAG"]:
+            cache_params[item].append({"name": value})
+            simple = False
+
+    sanitized_uri = "/" + path + "?" + "&".join(
+        ["%s=%s" % (k.upper(), v.upper()) for k, v in sorted(
+         params.iteritems())])
+
+    hashkey = hashlib.sha512(sanitized_uri).hexdigest()
+
+    if simple is True:
+        app.logger.debug("Using SIMPLE cache")
+    elif simple is False:
+        for item in path.split("/"):
+            cache_params['CONTAINERS'].append({"name": item})
+        data = CacheReference.query.filter_by(cache_id=hashkey).first()
+        if data is None:
+            newitem = CacheReference(hashkey, 'page', sanitized_uri)
+            db.session.add(newitem)
+            db.session.commit()
+            newitem.save_cache_entry(**cache_params)
+        else:
+            if data.uri != sanitized_uri:
+                raise Exception("DATA Integrity error! cache key is returning nonmatching URI")
+        app.logger.debug("Using DATABASE cache")
+
+    app.logger.debug("returning key: %s for sanitized URL: %s" %(hashkey, sanitized_uri))
+    return hashkey
+
+
+def get_cached_container_tree(path):
+    """
+    Method to get a cached container tree
+    """
+    pass
+
+def cache_container_tree(path):
+    """
+    Method to deal with storing a container tree in the hash
+    """
+    pass
 
 def purge(path, params):
     """

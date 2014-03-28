@@ -15,11 +15,32 @@ cache_servers = app.config['MEMCACHE_SERVERS'].split(",")
 cache = MemcachedCache(cache_servers)
 
 def get_main(path):
-    # This will handle all gets that are not otherwise defined.
-    data = "/" + path + "?" + "&".join(
-        ["%s=%s" % (k.upper(), v.upper()) for k, v in sorted(
-         flask.request.args.iteritems())])
-    cache_key = cacheops.getkey(uri=data)
+    # Set defaults for the request
+    request_tag = app.config['DEFAULT_TAG']
+    request_return = "VALUES"
+    request_key = None
+
+    params = dict()
+    # Validate the request and set request items
+    for (k, v) in flask.request.args.iteritems():
+        params[k.upper()] = v.upper()
+        if k.upper() == "TAG":
+            request_tag = v.upper()
+        elif k.upper() == "KEY":
+            request_key = v.lower()
+        elif k.upper() == "RETURN":
+            request_return = v.upper()
+        else:
+            # Clean up known query string params, avoid cachebusting
+            # and make clearing the cache possible for posts/puts
+            return(error(
+                   400,
+                   "client error",
+                   "invalid query string parameters",
+                   key=k,
+                   value=v))
+
+    cache_key = cacheops.getkey(path=path, params=params)
     app.logger.debug("Using Cache Key: %s" % (cache_key))
     loadkey = "loading-" + cache_key
     cache_result = cache.get(cache_key)
@@ -48,27 +69,7 @@ def get_main(path):
             # Announce we're loading to the cache
             cache.set("loading-" + cache_key, "True",
                       timeout=app.config['CACHE_LOCKING_SECONDS'])
-            # Set values for the request
-            request_tag = app.config['DEFAULT_TAG']
-            request_return = "VALUES"
-            request_key = None
-            for (k, v) in flask.request.args.iteritems():
-                if k.upper() == "TAG":
-                    request_tag = v.upper()
-                elif k.upper() == "KEY":
-                    request_key = v.lower()
-                elif k.upper() == "RETURN":
-                    request_return = v.upper()
-                else:
-                    # Clean up known query string params, avoid cachebusting
-                    # and make clearing the cache possible for posts/puts
-                    return(error(
-                           400,
-                           "client error",
-                           "invalid query string parameters",
-                           key=k,
-                           value=v,
-                           path=cache_key))
+
 
             app.logger.debug(
                 "I'm doing the loading after a sleep of %f seconds" %
