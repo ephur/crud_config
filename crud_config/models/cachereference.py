@@ -45,15 +45,31 @@ class CacheReference(db.Model):
 
         db.session.add(self)
         for item in kwargs:
-            print item,"=",kwargs[item]
             try:
                 if item.upper() == 'CONTAINERS':
-                    print item.upper()
                     for container in kwargs[item]:
                         db.session.add(crud_config.models.cachecontainers.CacheContainers(
-                                           self.cache_id,
-                                           container['id'],
-                                           unicode(container['name'])))
+                                        self.cache_id,
+                                        container['id'],
+                                        unicode(container['name'])))
+                elif item.upper() == 'VALUES':
+                    for value in kwargs[item]:
+                        db.session.add(crud_config.models.cachevalues.CacheValues(self.cache_id,
+                                                                                  value['id'],
+                                                                                  unicode(value['name'])))
+                elif item.upper() == 'KEYS':
+                    for key in kwargs[item]:
+                        db.session.add(crud_config.models.cachekeys.CacheKeys(self.cache_id,
+                                                                              key['id'],
+                                                                              unicode(key['name'])))
+                elif item.upper() == 'TAGS':
+                    for tag in kwargs[item]:
+                        db.session.add(crud_config.models.cachetags.CacheTags(self.cache_id,
+                                                                              tag['id'],
+                                                                              unicode(tag['name'])))
+
+                else:
+                    raise ValueError('unrecognized arguments: %s' % item)
             except AttributeError as e:
                 raise
 
