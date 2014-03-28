@@ -1,6 +1,23 @@
-import flask
 from crud_config import app
+from crud_config import db
 from werkzeug.contrib.cache import MemcachedCache
+import uuid
+
+def getkey(**kwargs):
+    """
+    generate a cache key based on the arguments
+
+    Understood keyword arguments:
+        (boolean) tree; If True treated as a container tree cache
+        (boolean) data; URI data
+    """
+
+
+
+    # Step 1: Determine if the cache key is for a container tree, or page view
+    # Step 2: Determine if a value can have a simple cache value, or needs to go the DB
+    # Step 3: Determine if cached values are already in the DB, return the value
+
 
 def purge(path, params):
     """

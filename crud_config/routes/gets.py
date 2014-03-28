@@ -1,12 +1,9 @@
 import flask
 import crud_config.crud.retrieve as ccget
-import crud_config.crud.update as ccput
-import crud_config.crud.delete as ccdelete
-import crud_config.crud.create as ccpost
 import crud_config.exceptions as ce
 import crud_config.util
 from crud_config.error_handlers import error
-
+import cacheops
 import simplejson as json
 
 from crud_config import app
@@ -19,9 +16,10 @@ cache = MemcachedCache(cache_servers)
 
 def get_main(path):
     # This will handle all gets that are not otherwise defined.
-    cache_key = "/" + path + "?" + "&".join(
+    data = "/" + path + "?" + "&".join(
         ["%s=%s" % (k.upper(), v.upper()) for k, v in sorted(
          flask.request.args.iteritems())])
+    cache_key = cacheops.getkey(uri=data)
     app.logger.debug("Using Cache Key: %s" % (cache_key))
     loadkey = "loading-" + cache_key
     cache_result = cache.get(cache_key)

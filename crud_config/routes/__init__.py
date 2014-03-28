@@ -7,7 +7,7 @@ import gets
 import puts
 import posts
 import deletes
-import purge
+import cacheops
 
 
 # Need to do an auth lookup on any and all requests

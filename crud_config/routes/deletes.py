@@ -8,7 +8,7 @@ import crud_config.crud.create as ccpost
 import crud_config.exceptions as ce
 from crud_config.error_handlers import error
 from crud_config import app
-from purge import purge
+from cacheops import purge
 
 def delete_main(path):
     valid_keys = ['containers', 'keyvals']

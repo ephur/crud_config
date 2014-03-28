@@ -1,14 +1,11 @@
 import flask
 import simplejson as json
-import crud_config
 import crud_config.crud.retrieve as ccget
 import crud_config.crud.update as ccput
-import crud_config.crud.delete as ccdelete
-import crud_config.crud.create as ccpost
 import crud_config.exceptions as ce
 from crud_config.error_handlers import error
 from crud_config import app
-from purge import purge
+from cacheops import purge
 
 def put_main(path):
     # A function that matches post_process_{valid_key} must exist
