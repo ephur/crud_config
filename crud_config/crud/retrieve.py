@@ -5,7 +5,6 @@ from crud_config.models import *
 import sqlalchemy.orm.exc as sqlormerrors
 import crud_config.exceptions as ce
 
-
 def get_container(container):
     """
     Get the container referenced by ID or by Tree

@@ -21,7 +21,7 @@ def get_main(path):
     request_key = None
 
     params = dict()
-    # Validate the request and set request items
+    # Validate URI parameters and prepare variables for return data
     for (k, v) in flask.request.args.iteritems():
         params[k.upper()] = v.upper()
         if k.upper() == "TAG":
@@ -42,7 +42,7 @@ def get_main(path):
 
     cache_key = cacheops.getkey(path=path, params=params)
     app.logger.debug("Using Cache Key: %s" % (cache_key))
-    loadkey = "loading-" + cache_key
+    load_key = "loading-" + cache_key
     cache_result = cache.get(cache_key)
     loops = 0
     # All get's are served up from the cache.
@@ -63,13 +63,12 @@ def get_main(path):
         # For other threads that might be requesting the same thing, announce
         # to the cache that we're processing this page, help to eliminate
         # overloading during bursts for the same key.
-        if ((cache.get("loading-" + cache_key) is None and
+        if ((cache.get(load_key) is None and
              cache.get(cache_key) is None)):
 
             # Announce we're loading to the cache
-            cache.set("loading-" + cache_key, "True",
+            cache.set(load_key, "True",
                       timeout=app.config['CACHE_LOCKING_SECONDS'])
-
 
             app.logger.debug(
                 "I'm doing the loading after a sleep of %f seconds" %
@@ -120,9 +119,12 @@ def get_main(path):
                         child_containers.append(path + "/" + child_container)
                         app.logger.debug(all_child_containers)
                     for child_container in child_containers:
-                        c = ccget.get_container(child_container)
-                        all_child_containers[c.name] = { "description": c.description,
-                                                         "id": c.id }
+                        try:
+                            c = ccget.get_container(child_container)
+                            all_child_containers[c.name] = { "description": c.description,
+                                                             "id": c.id }
+                        except ce.noResult as e:
+                            pass
 
                 # Process a value list
                 if request_return == "ALL" or request_return =="VALUES":

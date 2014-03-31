@@ -4,7 +4,8 @@ from crud_config.models.cachereference import CacheReference
 from werkzeug.contrib.cache import MemcachedCache
 import hashlib
 
-def getkey(path, params, **kwargs):
+
+def getkey(path, params):
     """
     generate a cache key based on the arguments
 
@@ -13,17 +14,17 @@ def getkey(path, params, **kwargs):
         (boolean) data; URI data
     """
 
-    simple=True
-    app.logger.debug("Generating cache key for path --- params \nPath: %s\n/Params: %s" % (path, params))
+    simple = True
+    app.logger.debug("Generating cache key for path --- params Path: %s /// Params: %s" % (path, params))
     cache_params = dict()
     cache_params['KEY'] = list()
     cache_params['TAG'] = list()
-    cache_params['CONTAINERS'] = list ()
+    cache_params['CONTAINERS'] = list()
 
     for item, value in params.iteritems():
         app.logger.debug("%s:%s" % (item, value))
         if item in ["KEY", "SEARCHKEY"]:
-            cache_params[item].append({ "name": value })
+            cache_params[item].append({"name": value})
             simple = False
         if item in ["TAG"]:
             cache_params[item].append({"name": value})
@@ -51,7 +52,7 @@ def getkey(path, params, **kwargs):
                 raise Exception("DATA Integrity error! cache key is returning nonmatching URI")
         app.logger.debug("Using DATABASE cache")
 
-    app.logger.debug("returning key: %s for sanitized URL: %s" %(hashkey, sanitized_uri))
+    app.logger.debug("returning key: %s for sanitized URL: %s" % (hashkey, sanitized_uri))
     return hashkey
 
 
@@ -61,76 +62,54 @@ def get_cached_container_tree(path):
     """
     pass
 
+
 def cache_container_tree(path):
     """
     Method to deal with storing a container tree in the hash
     """
     pass
 
+
 def purge(path, params):
     """
     This is to invalidate cache items that are submitted.
     """
+    app.logger.debug("Cache Purge Path: %s " % path)
+    app.logger.debug("Cache Purge Params: %s" % params)
     cache = MemcachedCache(app.config['MEMCACHE_SERVERS'].split(","))
-    # HORRIBLE HORRIBLE HORRIBLE
-    # @todo the cache clearing needs reworked for a few reasons,
-    # currently, only the entire cache can be purged, beacuse of the cache
-    # key used, on update, the entire cache will be removed.
-    cache.clear()
-    return True
 
-    # Each of the containers so the top level containers can be purged
-    path_parts = path.split("/")
-    # The starting point for purge requests
-    base_path = ""
-    # Hold a list of the keys to purge
-    purge_keys = []
+    # Setup the main container purge
+    return_param_options = ['ALL', 'CONTAINERS', 'VALUES']
+    if path[0] != "/":
+        path = "/" + path
+    purge_keys = [hashlib.sha512(path).hexdigest()]
+    purge_keys_plain = [(path)]
+    purge_keys.append(hashlib.sha512(path + "?").hexdigest())
+    purge_keys_plain.append(path + "?")
 
+    # Purge all the return options for the given container
+    for an_option in return_param_options:
+        purge_keys.append(hashlib.sha512(path + "RETURN=" + an_option).hexdigest())
+        purge_keys_plain.append(path + "?" + "RETURN=" + an_option)
+
+    # Purge all the containers that were part of the put/post as well as container values
     try:
-        containers = params['containers']
+        for container in params['containers']:
+            purge_keys.append(hashlib.sha512(path + "/" + container['name'] + "?").hexdigest())
+            purge_keys_plain.append(path + "/" + container['name'] + "?")
+        for an_option in return_param_options:
+            purge_keys.append(hashlib.sha512(path + "RETURN=" + an_option).hexdigest())
+            purge_keys_plain.append(path + "/" + container['name'] + "?" + "RETURN=" + an_option)
     except KeyError as e:
-        containers = list()
         pass
 
-    # Purge keys for the items in the tree up to the final one submitted
-    while len(path_parts) > 0:
-        base_path = base_path + "/" + path_parts.pop(0).upper()
-        purge_keys.append(base_path)
+    # Purge the keys
 
-    # Generate the URI's to purge based on the keyvals updated
-    try:
-        keyvals = params['keyvals']
-    except KeyError as e:
-        keyvals = list()
-        pass
-
-    # Purge the container level items for the containers updated
-    for item in containers:
-        try:
-            name = item['name']
-        except TypeError:
-            name = item
-        purge_keys.append(base_path + "/" + name)
-        purge_keys.append(base_path + "/" + name + "?RETURN=ALL")
-        purge_keys.append(base_path + "/operations/container/list" + base_path + name)
-        purge_keys.append(base_path + "/operations/container/list" + base_path + name + "?RECURSIVE=TRUE")
-        for i in range(app.config['TREE_MAX_RECURSION']):
-            purge_keys.append(base_path + "/operations/container/list" + base_path +
-                              name + "?DEPTH=%s" %(str(i)))
-            purge_keys.append(base_path + "/operations/container/list" + base_path +
-                              name + "?DEPTH=%s&RECURSIVE=TRUE" %(str(i)))
-
-
-    # Purge all the keyvals in the container, with the proper tags (and for untagged items)
-    for item in keyvals:
-        param_path = base_path
-        param_path = param_path + "?KEY=%s" % (item['key'].upper())
-        purge_keys.append(param_path)
-        try:
-            purge_keys.append(param_path + "&TAG=" + item['tag'].upper())
-        except KeyError as e:
-            purge_keys.append(param_path + "&TAG=" + app.config['DEFAULT_TAG'])
+    # Setup the key purge
+    for item in params:
+        app.logger.debug(item)
 
     app.logger.debug("PURGING KEYS: %s" % ("|".join(purge_keys)))
+    app.logger.debug("PURGING KEYS: %s" % ("|".join(purge_keys_plain)))
     cache.delete_many(*purge_keys)
     return True
