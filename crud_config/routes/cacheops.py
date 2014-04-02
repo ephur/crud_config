@@ -25,12 +25,12 @@ def getkey(path, params):
 
     for item, value in params.iteritems():
         app.logger.debug("%s:%s" % (item, value))
-        if item in ["KEY", "SEARCHKEY"]:
+        if item in ["SEARCHKEY"]:
             cache_params[item].append({"name": value})
             simple = False
-        if item in ["TAG"]:
+        if item in ["TAG","KEY"]:
             cache_params[item].append({"name": value})
-            simple = False
+            simple = True
 
     sanitized_uri = "/" + path + "?" + "&".join(
         ["%s=%s" % (k.upper(), v.upper()) for k, v in sorted(
