@@ -22,6 +22,5 @@ class CacheTags(db.Model):
         self.tag_name = tag_name
 
     def __repr__(self):
-        return "<Cachetags('{0:s}', '{1:s}', {2:d})>".format(str(self.cache_id),
-                                                             unicode(self.tag_name),
-                                                             int(self.tag_id))
+        return "<Cachetags('{0:s}', '{1:s}')>".format(str(self.cache_id),
+                                                             unicode(self.tag_name))

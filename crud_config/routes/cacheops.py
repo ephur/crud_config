@@ -1,6 +1,8 @@
 from crud_config import app
 from crud_config import db
 from crud_config.models.cachereference import CacheReference
+from crud_config.models.cachecontainers import CacheContainers
+from crud_config.models.cachekeys import CacheKeys
 from werkzeug.contrib.cache import MemcachedCache
 import hashlib
 
@@ -95,19 +97,59 @@ def purge(path, params):
     # Purge all the containers that were part of the put/post as well as container values
     try:
         for container in params['containers']:
+            foo = db.session.query(CacheContainers).filter(CacheContainers.container_name==unicode(container["name"]))
+            app.logger.debug(foo)
+            app.logger.debug(dir(foo))
             purge_keys.append(hashlib.sha512(path + "/" + container['name'] + "?").hexdigest())
             purge_keys_plain.append(path + "/" + container['name'] + "?")
-        for an_option in return_param_options:
-            purge_keys.append(hashlib.sha512(path + "RETURN=" + an_option).hexdigest())
-            purge_keys_plain.append(path + "/" + container['name'] + "?" + "RETURN=" + an_option)
+            for an_option in return_param_options:
+                purge_keys.append(hashlib.sha512(path + "RETURN=" + an_option).hexdigest())
+                purge_keys_plain.append(path + "/" + container['name'] + "?" + "RETURN=" + an_option)
     except KeyError as e:
         pass
 
-    # Purge the keys
+    # Purge the keys that were updated in the container
+    try:
+        for keyval in params['keyvals']:
+            try:
+                tag = keyval['tag'].upper()
+            except KeyError:
+                tag=app.config['DEFAULT_TAG'].upper()
 
-    # Setup the key purge
-    for item in params:
-        app.logger.debug(item)
+            app.logger.debug(unicode(keyval["key"]))
+            cachedkeys = db.session.query(CacheKeys).filter(CacheKeys.key_name==unicode(keyval["key"].lower())).all()
+            app.logger.debug(cachedkeys)
+            try:
+                for cachedkey in cachedkeys:
+                    if cachedkey.parent.uri.split("?")[0].startswith(path):
+                        app.logger.debug(cachedkey.parent.child_tags)
+                        for child_tag in cachedkey.parent.child_tags:
+                            app.logger.debug(child_tag.tag_name)
+                            app.logger.debug("%s:%s" % (child_tag.tag_name, tag))
+                            if child_tag.tag_name == tag:
+                                app.logger.debug("MATCHED DATABASE CACHE ITEM: %s" % cachedkey.parent.cache_id)
+                                purge_keys.append(cachedkey.parent.cache_id)
+                                purge_keys_plain.append(cachedkey.parent.uri)
+                                app.logger.debug(cachedkey.parent)
+                                db.session.delete(cachedkey.parent)
+                                db.session.commit()
+                                break
+            except TypeError as e:
+                app.logger.debug("May be normal, but.... in case not! %s" % e.message)
+                pass
+
+            purge_keys.append(hashlib.sha512(path + "?KEY=" + keyval['key'] + "&TAG=" + tag).hexdigest())
+            purge_keys_plain.append(path + "?KEY=" + keyval['key'] + "&TAG=" + tag)
+            for an_option in return_param_options:
+                purge_keys.append(hashlib.sha512(path + "?KEY=" + keyval['key'] +
+                                                 "&RETURN=" + an_option +
+                                                 "&TAG=" + tag).hexdigest())
+                purge_keys_plain.append(path + "?KEY=" + keyval['key'] +
+                                        "&RETURN=" + an_option +
+                                        "&TAG=" + tag)
+    except KeyError as e:
+        app.logger.debug("May be normal, but.... in case not! %s" % e.message)
+        pass
 
     app.logger.debug("PURGING KEYS: %s" % ("|".join(purge_keys)))
     app.logger.debug("PURGING KEYS: %s" % ("|".join(purge_keys_plain)))

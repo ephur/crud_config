@@ -21,6 +21,5 @@ class CacheKeys(db.Model):
         self.key_name = key_name
 
     def __repr__(self):
-        return "<Cachekeys('{0:s}', '{1:s}', {2:d})>".format(str(self.cache_id),
-                                                             unicode(self.key_name),
-                                                             int(self.key_id))
+        return "<Cachekeys('{0:s}', '{1:s}')>".format(str(self.cache_id),
+                                                             unicode(self.key_name))
