@@ -88,12 +88,29 @@ def purge(path, params):
     purge_keys_plain = [(path)]
     purge_keys.append(hashlib.sha512(path + "?").hexdigest())
     purge_keys_plain.append(path + "?")
+    try:
+        for keyval in params['keyvals']:
+            try:
+                purge_keys.append(hashlib.sha512(path + "?TAG=" + keyval['tag'].upper()).hexdigest())
+                purge_keys_plain.append(path + "?TAG=" + keyval['tag'].upper())
+            except KeyError:
+                pass
+    except KeyError:
+        pass
 
     # Purge all the return options for the given container
     for an_option in return_param_options:
-        purge_keys.append(hashlib.sha512(path + "RETURN=" + an_option).hexdigest())
+        purge_keys.append(hashlib.sha512(path + "?RETURN=" + an_option).hexdigest())
         purge_keys_plain.append(path + "?" + "RETURN=" + an_option)
-
+        try:
+            for keyval in params['keyvals']:
+                try:
+                    purge_keys.append(hashlib.sha512(path + "?RETURN=" + an_option + "&TAG=" + keyval['tag'].upper()).hexdigest())
+                    purge_keys_plain.append(path + "?RETURN=" + an_option + "&TAG=" + keyval['tag'].upper())
+                except KeyError:
+                    pass
+        except KeyError:
+            pass
     # Purge all the containers that were part of the put/post as well as container values
     try:
         for container in params['containers']:
