@@ -17,14 +17,13 @@ def getkey(path, params):
     """
 
     simple = True
-    app.logger.debug("Generating cache key for path --- params Path: %s /// Params: %s" % (path, params))
+    app.logger.debug("Generating cache key for path --- params Path: %s --- Params: %s" % (path, params))
     cache_params = dict()
     cache_params['KEY'] = list()
     cache_params['TAG'] = list()
     cache_params['CONTAINERS'] = list()
 
     for item, value in params.iteritems():
-        app.logger.debug("%s:%s" % (item, value))
         if item in ["SEARCHKEY"]:
             cache_params[item].append({"name": value})
             simple = False

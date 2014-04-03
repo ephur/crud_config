@@ -114,10 +114,8 @@ def get_main(path):
                 if request_return == "ALL" or request_return == "CONTAINERS":
                     child_containers = list()
                     all_child_containers = dict()
-                    app.logger.debug(request_return)
                     for child_container in container.children:
                         child_containers.append(path + "/" + child_container)
-                        app.logger.debug(all_child_containers)
                     for child_container in child_containers:
                         try:
                             c = ccget.get_container(child_container)
