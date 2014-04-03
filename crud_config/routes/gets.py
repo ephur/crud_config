@@ -20,6 +20,8 @@ def get_main(path):
     request_return = "VALUES"
     request_key = None
 
+    if path.endswith("/"): path = path[:-1]
+
     params = dict()
     # Validate URI parameters and prepare variables for return data
     for (k, v) in flask.request.args.iteritems():
