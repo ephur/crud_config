@@ -28,7 +28,7 @@ def getkey(path, params):
         if item in ["SEARCHKEY"]:
             cache_params[item].append({"name": value})
             simple = False
-        if item in ["TAG","KEY"]:
+        if item in ["KEY","TAG"]:
             cache_params[item].append({"name": value})
             simple = True
 
@@ -111,6 +111,7 @@ def purge(path, params):
                     pass
         except KeyError:
             pass
+
     # Purge all the containers that were part of the put/post as well as container values
     try:
         for container in params['containers']:

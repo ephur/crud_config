@@ -71,7 +71,7 @@ def delete_process_containers(data, **kwargs):
     path = kwargs['path']
     return_data = kwargs['processed_so_far']
     for container in data:
-        killtainer = path + "/" + container
+        killtainer = path + "/" + container['name']
         try:
             ccdelete.delete_container(killtainer)
             return_data.append("Deleted %s" % (killtainer) )

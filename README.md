@@ -174,12 +174,10 @@ Update configuration values. You can not update a value that does not exist. A 4
 
 ### delete requests 
 * delete /config/key?tag=y (delete a key with matching tag from the global area)
-* delete /config/region?yes_im_sure=true (delete a region and matching keys)
-* delete /config/region/key?tag=y (delete a key with matching tag from a region)
-* delete /config/region/cell?yes_im_sure=true (delete a cell and matching keys)
-* delete /config/region/cell/key?tag=y (delete a key with matching tag from from a cell)
-* delete /config/region/cell/machine/key&tag=y (delete a key with matching tag from a machine)
-* delete /config/region/cell/machine?yes_im_sure=true (delete a machine and matching keys)
+* delete /config/ (delete container foo from config)
+``
+{"containers": [ {"name": "foo" } ] }
+``
 
 ## AUTH MECHANISM: 
 ### LDAP/SSO:
